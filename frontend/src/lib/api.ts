@@ -481,6 +481,28 @@ export const api = {
     return uploadRequest<VerdictData>('/api/v1/analyze/voice', formData)
   },
 
+  // ─── Photon — message reply coach ────────────────────────────────────────
+  // Reads the negotiation memory HydraDB stores for a verdict and drafts a
+  // reply you can paste into iMessage/WhatsApp/Marketplace chat. Returns
+  // 409 when the verdict has no memory yet (run an analysis first).
+  draftMessageReply: (data: {
+    query_id: string
+    seller_message: string
+    user_intent?: string
+    tone?: 'polite' | 'firm' | 'walk_away' | 'friendly'
+    provider?: string
+  }) => request<PhotonReplyData>('/api/v1/messages/draft', {
+    method: 'POST',
+    body: JSON.stringify(data),
+  }),
+
+  // ─── HydraDB — negotiation memory ────────────────────────────────────────
+  listMemorySessions: () =>
+    request<{ sessions: NegotiationMemoryData[] }>('/api/v1/memory/sessions'),
+
+  getMemorySession: (queryId: string) =>
+    request<NegotiationMemoryData>(`/api/v1/memory/sessions/${queryId}`),
+
   getVerdict: (id: string) => request<VerdictData>(`/api/v1/history/${id}`),
 
   getRecommendations: (queryId: string) =>
@@ -880,6 +902,43 @@ export interface ListingWatchData {
   next_check_at: string | null
   last_checked_at: string | null
   created_at: string | null
+}
+
+// ─── Faivri partner-tech response shapes ───────────────────────────────────
+
+export interface PhotonReplyData {
+  reply: string
+  tone: 'polite' | 'firm' | 'walk_away' | 'friendly'
+  suggested_price_cents: number | null
+  served_by: 'gmi_cloud' | 'anthropic' | 'openai'
+  grounded_in: {
+    fair_low_cents: number | null
+    fair_high_cents: number | null
+    walk_away_cents: number | null
+    prior_messages: number
+    prior_counters: number
+  }
+}
+
+export interface NegotiationMemoryData {
+  query_id: string
+  quoted_price_cents: number | null
+  fair_low_cents: number | null
+  fair_high_cents: number | null
+  walk_away_cents: number | null
+  target_offer_cents: number | null
+  counter_offer_history: Array<{
+    counter_offer_cents: number
+    original_target_cents: number
+    at: string | null
+  }>
+  conversation_messages: Array<{
+    role: string
+    content: string
+    at?: string
+  }>
+  seller_tone: string | null
+  last_seen_at: string | null
 }
 
 // Boost Pack helpers — used by OutOfAnalysesModal and the usage widget.

@@ -13,10 +13,6 @@ class Settings(BaseSettings):
     firecrawl_api_key: str = ""
 
     # ─── Faivri partner integrations ─────────────────────────────────────
-    # PixVerse handles the video → keyframes hop for /analyze/video. When
-    # unset, the router falls back to a local OpenCV mid-frame grab and
-    # the user simply doesn't get a side-by-side comparison visual.
-    pixverse_api_key: str = ""
     # GMI Cloud's GPU fleet is the preferred inference path for fast +
     # strong tasks. Empty key keeps every call on Anthropic / OpenAI.
     gmi_cloud_api_key: str = ""

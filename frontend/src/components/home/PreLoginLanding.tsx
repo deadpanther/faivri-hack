@@ -17,11 +17,9 @@ import {
   MessageSquare,
   CreditCard,
   Lock,
-  Brain,
   Cpu,
   Database,
   Sparkles,
-  Video,
 } from 'lucide-react'
 import { SignUpButton } from '@clerk/nextjs'
 
@@ -55,16 +53,15 @@ const DOMAINS = [
 
 /* ── How it works steps ── */
 const STEPS = [
-  { icon: Video, num: '01', title: 'Capture the quote', desc: 'Film a quick clip — invoice, item, or screen. PixVerse turns video into structured fields in seconds.' },
+  { icon: Upload, num: '01', title: 'Send us the quote', desc: 'Type it, snap a photo of the invoice, or open a listing with the extension.' },
   { icon: Search, num: '02', title: 'GMI Cloud crunches the market', desc: 'Real-time GPU inference cross-references live retail, service, and secondhand pricing.' },
-  { icon: BarChart3, num: '03', title: 'See the fair range', desc: 'Side-by-side comparison visual, ranged not pointed — every comp cites its source.' },
+  { icon: BarChart3, num: '03', title: 'See the fair range', desc: 'A range, not a number \u2014 every comp cites its source.' },
   { icon: MessageSquare, num: '04', title: 'Photon drafts the reply', desc: 'Paste the seller\u2019s message, get a polite, data-backed counter you can send verbatim.' },
   { icon: TrendingDown, num: '05', title: 'HydraDB remembers everything', desc: 'Walk-away ceilings, price fluctuations, seller tone \u2014 all stored so the next round picks up where you left off.' },
 ]
 
 /* ── Partner stack — credited only when the integration ships in this build ── */
 const PARTNERS = [
-  { icon: Video, label: 'PixVerse', desc: 'Video extraction' },
   { icon: Cpu, label: 'GMI Cloud', desc: 'Real-time GPU inference' },
   { icon: Database, label: 'HydraDB', desc: 'Negotiation memory' },
   { icon: MessageSquare, label: 'Photon', desc: 'Messaging assistant' },
@@ -102,18 +99,19 @@ export default function PreLoginLanding() {
         <FloatingEvidenceCards className="opacity-75" />
         <div className="ui-container flex flex-col items-center text-center">
           <motion.div {...reveal(0)} className="ui-kicker">
-            <ShieldCheck className="h-3.5 w-3.5" />
-            AI-Powered Consumer Protection
+            <Sparkles className="h-3.5 w-3.5" />
+            Built for Build Matcha &amp; Code · AI-Powered Negotiation Agent
           </motion.div>
 
           <h1 className="ui-title-display mt-6 px-2" style={{ fontSize: 'clamp(2rem, 8vw, 5rem)' }}>
-            <TextScramble text="Know if you're being" delay={200} className="block" />
-            <TextScramble text="overcharged." delay={600} className="block text-[var(--red)]" />
+            <TextScramble text="Reclaim the $1,200" delay={200} className="block" />
+            <TextScramble text="you overpay every year." delay={600} className="block text-[var(--red)]" />
           </h1>
 
           <motion.p {...heroReveal(0.5)} className="ui-lead mt-4 max-w-2xl px-2 text-center text-[var(--type-16)] sm:mt-5 sm:text-[var(--type-18)]">
-            Check any quote against live market data in seconds.
-            Clear numbers, clear confidence, clear next step.
+            Faivri is your AI-powered negotiation agent for quotes, repairs, and
+            marketplace listings. Send a quote, get a fair-market verdict, and
+            send a polite, data-backed reply &mdash; all in under ten seconds.
           </motion.p>
 
           <motion.div {...scaleIn(0.7)} className="mt-6 flex w-full flex-wrap items-center justify-center gap-3 sm:mt-8 sm:w-auto">
@@ -133,7 +131,7 @@ export default function PreLoginLanding() {
               />
               <SignUpButton>
                 <MagneticButton className="btn-primary inline-flex w-full items-center justify-center gap-2 px-5 py-3 text-[15px] sm:w-auto sm:px-7 sm:py-3.5 sm:text-base relative">
-                  Check Your First Quote — Free
+                  Start Negotiating — Free
                   <ArrowRight className="h-4 w-4" />
                 </MagneticButton>
               </SignUpButton>
@@ -156,6 +154,38 @@ export default function PreLoginLanding() {
               <Lock className="h-3.5 w-3.5 text-[var(--green)]" aria-hidden />
               Private by default
             </span>
+            <span className="inline-flex items-center gap-1.5">
+              <ShieldCheck className="h-3.5 w-3.5 text-[var(--green)]" aria-hidden />
+              Verdicts cite live sources
+            </span>
+          </motion.div>
+
+          {/* Partner credits — Faivri is built on GMI Cloud + HydraDB + Photon. */}
+          <motion.div
+            {...reveal(1.0)}
+            className="mt-8 w-full max-w-3xl"
+          >
+            <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-[var(--text-3)]">
+              Powered by
+            </p>
+            <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-3 sm:gap-3">
+              {PARTNERS.map((p) => (
+                <div
+                  key={p.label}
+                  className="flex items-center gap-2 rounded-2xl border border-[var(--border)] bg-white/70 px-3 py-2.5 text-left backdrop-blur-sm"
+                >
+                  <p.icon className="h-4 w-4 shrink-0 text-[var(--text-2)]" aria-hidden />
+                  <div className="min-w-0">
+                    <p className="font-display text-[13px] font-semibold leading-none text-[var(--text-1)]">
+                      {p.label}
+                    </p>
+                    <p className="mt-0.5 truncate text-[11px] text-[var(--text-3)]">
+                      {p.desc}
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </div>
           </motion.div>
 
           {/* Live demo tile — shows the product on the landing page */}
@@ -172,14 +202,15 @@ export default function PreLoginLanding() {
           <motion.div {...scrollReveal(0)} className="text-center mb-10">
             <p className="ui-kicker justify-center">What We Cover</p>
             <SplitText
-              text="Every quote. Every listing. One verdict engine."
+              text="Every quote. Every listing. One negotiation agent."
               className="ui-title-section mt-3 text-[var(--text-1)]"
               as="h2"
               delay={0.15}
             />
             <p className="ui-lead mt-3 mx-auto text-center">
-              Auto, medical, home, legal — and any marketplace listing you&apos;re about to buy.
-              Benchmarked against live market signals.
+              Auto, medical, home, legal &mdash; and any marketplace listing you&apos;re
+              about to buy. Faivri reads the quote, runs the comps, and writes
+              the reply.
             </p>
           </motion.div>
 

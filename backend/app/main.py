@@ -13,7 +13,7 @@ from starlette.middleware.base import BaseHTTPMiddleware
 from app.config import settings
 from app.services.database import engine
 from app.services.limiter import limiter
-from app.routers import analyze, negotiate, feedback, history, community, vehicles, recommend, waitlist, usage, webhooks, extension, extension_auth, student, billing, webhooks_stripe, share, video, messages, memory
+from app.routers import analyze, negotiate, feedback, history, community, vehicles, recommend, waitlist, usage, webhooks, extension, extension_auth, student, billing, webhooks_stripe, share, messages, memory
 
 logger = logging.getLogger(__name__)
 
@@ -143,9 +143,7 @@ app.include_router(student.router, prefix="/api/v1", tags=["student"])
 app.include_router(billing.router, prefix="/api/v1", tags=["billing"])
 app.include_router(share.router, prefix="/api/v1", tags=["share"])
 # Faivri partner-tech routers — added for the Build Matcha & Code launch.
-# `video` is the PixVerse + GMI Cloud capture-to-verdict pipeline,
 # `messages` is the Photon reply coach, `memory` exposes HydraDB.
-app.include_router(video.router, prefix="/api/v1", tags=["video"])
 app.include_router(messages.router, prefix="/api/v1", tags=["messages"])
 app.include_router(memory.router, prefix="/api/v1", tags=["memory"])
 
@@ -161,17 +159,16 @@ async def integrations():
 
     Surfaces honest "Powered by ..." signals to the frontend so the
     landing page only credits a partner when their key is actually
-    configured. PixVerse and GMI Cloud have separate adapter modules,
-    HydraDB is in-process on top of Postgres, and Photon is in-process
-    on top of GMI Cloud + the negotiation memory layer.
+    configured. GMI Cloud has a separate adapter module, HydraDB is
+    in-process on top of Postgres, and Photon is in-process on top of
+    GMI Cloud + the negotiation memory layer.
     """
-    from app.services import gmi_cloud, hydradb, photon, pixverse
+    from app.services import gmi_cloud, hydradb, photon
 
     return {
         "service": "faivri-api",
         "tagline": "AI-powered negotiation agent",
         "partners": {
-            "pixverse": pixverse.status(),
             "gmi_cloud": gmi_cloud.status(),
             "hydradb": hydradb.status(),
             "photon": photon.status(),
