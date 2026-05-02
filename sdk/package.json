@@ -1,0 +1,53 @@
+{
+  "name": "faivri",
+  "version": "0.1.0",
+  "description": "TypeScript SDK for the Faivri pricing intelligence API — analyze quotes, generate negotiation scripts, track savings.",
+  "keywords": [
+    "faivri",
+    "pricing",
+    "negotiation",
+    "ai",
+    "sdk",
+    "typescript"
+  ],
+  "homepage": "https://faivri.com",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/faivri/sdk.git"
+  },
+  "bugs": {
+    "url": "mailto:support@faivri.com"
+  },
+  "license": "MIT",
+  "author": "Faivri <support@faivri.com>",
+  "type": "module",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "sideEffects": false,
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "typecheck": "tsc --noEmit",
+    "prepublishOnly": "npm run build"
+  },
+  "devDependencies": {
+    "tsup": "^8.3.0",
+    "typescript": "^5.6.0"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

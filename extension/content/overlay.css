@@ -1,0 +1,428 @@
+/* Faivri overlay — isolated styles prefixed with .faivri- */
+
+.faivri-root {
+  position: fixed;
+  right: 20px;
+  top: 20px;
+  z-index: 2147483647;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  line-height: 1.4;
+  color: #1a1a1a;
+}
+
+.faivri-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 18px;
+  border-radius: 999px;
+  background: #111;
+  color: #fff;
+  font-size: 14px;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.28);
+  transition: transform 120ms ease, box-shadow 120ms ease;
+}
+
+.faivri-pill:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.3);
+}
+
+.faivri-pill[disabled] {
+  opacity: 0.7;
+  cursor: default;
+}
+
+.faivri-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: #22c55e;
+  box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.6);
+  animation: faivri-pulse 2s infinite;
+}
+
+@keyframes faivri-pulse {
+  0% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.6); }
+  70% { box-shadow: 0 0 0 10px rgba(34, 197, 94, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0); }
+}
+
+.faivri-panel {
+  width: 360px;
+  max-height: calc(100vh - 48px);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  background: #fff;
+  border-radius: 16px;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  box-shadow: 0 20px 48px rgba(0, 0, 0, 0.22);
+}
+
+.faivri-panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+  background: #fafafa;
+}
+
+.faivri-panel-title {
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+.faivri-panel-close {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-size: 16px;
+  color: #555;
+}
+.faivri-panel-close:hover { background: rgba(0,0,0,0.06); }
+
+.faivri-panel-body {
+  padding: 14px 16px;
+  font-size: 13px;
+  overflow-y: auto;
+}
+
+.faivri-verdict {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.faivri-verdict.fair { background: #dcfce7; color: #166534; }
+.faivri-verdict.high { background: #fef3c7; color: #92400e; }
+.faivri-verdict.overcharge { background: #fee2e2; color: #991b1b; }
+
+.faivri-fair-range {
+  margin-top: 10px;
+  font-size: 13px;
+  color: #333;
+}
+.faivri-fair-range strong { color: #111; }
+
+.faivri-explanation {
+  margin-top: 10px;
+  color: #333;
+  line-height: 1.45;
+}
+
+.faivri-section-title {
+  margin-top: 14px;
+  margin-bottom: 6px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #666;
+}
+
+.faivri-red-flag {
+  padding: 6px 10px;
+  background: #fef2f2;
+  border-left: 3px solid #dc2626;
+  border-radius: 4px;
+  margin-bottom: 6px;
+  font-size: 12px;
+  color: #7f1d1d;
+}
+
+.faivri-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: 100%;
+  padding: 10px 12px;
+  margin-top: 12px;
+  border-radius: 10px;
+  border: none;
+  background: #111;
+  color: #fff;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.faivri-btn:hover { background: #000; }
+.faivri-btn[disabled] { background: #888; cursor: default; }
+
+.faivri-btn-secondary {
+  background: transparent;
+  color: #111;
+  border: 1px solid rgba(0,0,0,0.15);
+}
+.faivri-btn-secondary:hover { background: rgba(0,0,0,0.04); }
+
+.faivri-script {
+  margin-top: 10px;
+  padding: 12px;
+  background: #f5f5f5;
+  border-radius: 10px;
+  font-size: 12px;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  color: #222;
+  max-height: 220px;
+  overflow-y: auto;
+}
+
+.faivri-error {
+  padding: 10px 12px;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 8px;
+  color: #991b1b;
+  font-size: 12px;
+  line-height: 1.5;
+}
+.faivri-error-badge {
+  display: inline-block;
+  padding: 2px 7px;
+  margin-right: 6px;
+  border-radius: 999px;
+  background: #991b1b;
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.faivri-error-meta {
+  margin-top: 6px;
+  font-size: 10px;
+  color: #b91c1c;
+  font-family: ui-monospace, monospace;
+}
+
+.faivri-loading {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 16px 4px;
+  color: #555;
+}
+.faivri-spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(0,0,0,0.15);
+  border-top-color: #111;
+  border-radius: 50%;
+  animation: faivri-spin 0.8s linear infinite;
+}
+@keyframes faivri-spin { to { transform: rotate(360deg); } }
+
+.faivri-footer {
+  padding: 10px 16px;
+  font-size: 11px;
+  color: #666;
+  border-top: 1px solid rgba(0,0,0,0.06);
+  background: #fafafa;
+}
+.faivri-footer a { color: #111; text-decoration: none; font-weight: 600; }
+
+.faivri-btn-sm {
+  width: auto;
+  margin-top: 8px;
+  padding: 6px 12px;
+  font-size: 11px;
+  border-radius: 8px;
+  background: transparent;
+  color: #111;
+  border: 1px solid rgba(0,0,0,0.15);
+}
+.faivri-btn-sm:hover { background: rgba(0,0,0,0.04); }
+
+.faivri-play-anchors {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin-bottom: 10px;
+}
+.faivri-play-anchors > div {
+  padding: 8px 10px;
+  background: #f5f5f5;
+  border-radius: 10px;
+  text-align: center;
+}
+.faivri-play-anchors strong {
+  display: block;
+  font-size: 14px;
+  color: #111;
+  margin-top: 2px;
+}
+.faivri-play-anchor-label {
+  display: block;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #666;
+}
+
+.faivri-play-step {
+  margin-top: 10px;
+  padding: 10px 12px;
+  border: 1px solid rgba(0,0,0,0.08);
+  border-radius: 12px;
+  background: #fff;
+}
+.faivri-play-step-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.faivri-play-step-label {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #111;
+}
+.faivri-play-step-price {
+  font-size: 12px;
+  font-weight: 700;
+  color: #111;
+  padding: 2px 8px;
+  background: #f0f0f0;
+  border-radius: 999px;
+}
+.faivri-play-step .faivri-script {
+  margin-top: 8px;
+  max-height: 140px;
+}
+
+.faivri-tactic {
+  padding: 8px 10px;
+  background: #f8fafc;
+  border-left: 3px solid #0ea5e9;
+  border-radius: 4px;
+  margin-bottom: 6px;
+  font-size: 12px;
+  color: #0c4a6e;
+}
+
+.faivri-chat-wrap {
+  margin-top: 14px;
+  border-top: 1px solid rgba(0,0,0,0.08);
+  padding-top: 12px;
+}
+.faivri-chat-log {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-height: 240px;
+  overflow-y: auto;
+  padding: 4px 2px;
+}
+.faivri-chat-msg {
+  max-width: 85%;
+  padding: 8px 12px;
+  border-radius: 14px;
+  font-size: 12px;
+  line-height: 1.4;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+}
+.faivri-chat-msg.user {
+  align-self: flex-end;
+  background: #111;
+  color: #fff;
+  border-bottom-right-radius: 4px;
+}
+.faivri-chat-msg.assistant {
+  align-self: flex-start;
+  background: #f1f5f9;
+  color: #0f172a;
+  border-bottom-left-radius: 4px;
+}
+.faivri-chat-msg.coach {
+  align-self: flex-start;
+  background: #ecfccb;
+  color: #365314;
+  border-bottom-left-radius: 4px;
+  border-left: 3px solid #65a30d;
+}
+.faivri-chat-meta {
+  font-size: 10px;
+  color: #666;
+  margin-top: 2px;
+}
+.faivri-chat-input-row {
+  display: flex;
+  gap: 6px;
+  margin-top: 8px;
+}
+.faivri-chat-input {
+  flex: 1;
+  padding: 8px 10px;
+  border: 1px solid rgba(0,0,0,0.15);
+  border-radius: 10px;
+  font-size: 12px;
+  resize: none;
+  font-family: inherit;
+  min-height: 38px;
+  max-height: 120px;
+}
+.faivri-chat-input:focus {
+  outline: none;
+  border-color: #111;
+}
+.faivri-chat-send {
+  padding: 8px 14px;
+  background: #111;
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  font-weight: 600;
+  font-size: 12px;
+  cursor: pointer;
+}
+.faivri-chat-send[disabled] {
+  background: #888;
+  cursor: default;
+}
+.faivri-chat-toggle {
+  display: inline-flex;
+  gap: 4px;
+  margin-top: 8px;
+  font-size: 11px;
+  color: #555;
+}
+.faivri-chat-toggle button {
+  padding: 4px 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(0,0,0,0.15);
+  background: #fff;
+  cursor: pointer;
+  font-size: 11px;
+  color: #333;
+}
+.faivri-chat-toggle button.active {
+  background: #111;
+  color: #fff;
+  border-color: #111;
+}
+.faivri-chat-coach-hint {
+  padding: 6px 10px;
+  background: #fef3c7;
+  border-radius: 8px;
+  font-size: 11px;
+  color: #78350f;
+  margin-top: 6px;
+}

@@ -1,0 +1,190 @@
+<h2>FairCheck — Database Schema (Supabase)</h2>
+<p class="subtitle">PostgreSQL with pgvector for embeddings, RLS for security, Supabase Auth for users</p>
+
+<div class="mockup">
+  <div class="mockup-header">Entity Relationship Diagram</div>
+  <div class="mockup-body" style="padding:24px;background:#0F172A;color:#e2e8f0;font-family:monospace;font-size:12px;line-height:1.7;">
+<pre style="margin:0;white-space:pre;overflow-x:auto;">
+┌──────────────────────┐       ┌──────────────────────────┐
+│       profiles       │       │         queries          │
+│──────────────────────│       │──────────────────────────│
+│ id (FK → auth.users) │◄──┐   │ id (uuid PK)             │
+│ display_name         │   │   │ user_id (FK → profiles)   │
+│ city                 │   ├───│ domain (auto/med/home/legal│
+│ country (IN/US)      │   │   │ input_type (text/voice/img)│
+│ preferred_language   │   │   │ input_text                │
+│ subscription_tier    │   │   │ input_image_url           │
+│ total_saved          │   │   │ location_city             │
+│ queries_this_month   │   │   │ location_country          │
+│ created_at           │   │   │ quoted_price              │
+│ updated_at           │   │   │ fair_price_low            │
+└──────────────────────┘   │   │ fair_price_high           │
+                           │   │ verdict (fair/high/overcharge)
+┌──────────────────────┐   │   │ overcharge_multiplier     │
+│   subscriptions      │   │   │ confidence_score (0-100)  │
+│──────────────────────│   │   │ data_points_count         │
+│ id (uuid PK)         │   │   │ explanation               │
+│ user_id (FK)─────────┘   │   │ red_flags (jsonb[])       │
+│ tier (free/pro/family)   │   │ questions_to_ask (jsonb[])│
+│ status (active/cancelled)│   │ negotiation_script        │
+│ stripe_customer_id   │   │   │ sources_used (jsonb)      │
+│ current_period_end   │   │   │ llm_model_used            │
+│ created_at           │   │   │ cost_cents (query cost)   │
+└──────────────────────┘   │   │ feedback_final_price      │
+                           │   │ feedback_outcome          │
+                           │   │ created_at                │
+                           │   └──────────────────────────┘
+                           │
+                           │   ┌──────────────────────────┐
+                           │   │    community_prices      │
+                           │   │──────────────────────────│
+                           │   │ id (uuid PK)             │
+                           ├───│ user_id (FK → profiles)  │
+                           │   │ domain                   │
+                           │   │ service_type             │
+                           │   │ description              │
+                           │   │ price_paid               │
+                           │   │ currency (INR/USD)       │
+                           │   │ city                     │
+                           │   │ country                  │
+                           │   │ vendor_name (optional)   │
+                           │   │ verified (bool)          │
+                           │   │ embedding (vector(1536)) │
+                           │   │ created_at               │
+                           │   └──────────────────────────┘
+                           │
+                           │   ┌──────────────────────────┐
+                           │   │    pricing_knowledge     │
+                           │   │──────────────────────────│
+                           │   │ id (uuid PK)             │
+                           │   │ domain                   │
+                           │   │ category                 │
+                           │   │ item_name                │
+                           │   │ item_description         │
+                           │   │ price_low                │
+                           │   │ price_high               │
+                           │   │ currency                 │
+                           │   │ city (nullable = national)│
+                           │   │ country                  │
+                           │   │ source                   │
+                           │   │ source_url               │
+                           │   │ last_verified            │
+                           │   │ confidence (0-100)       │
+                           │   │ embedding (vector(1536)) │
+                           │   │ metadata (jsonb)         │
+                           │   │ created_at               │
+                           │   │ updated_at               │
+                           │   └──────────────────────────┘
+                           │
+                           │   ┌──────────────────────────┐
+                           │   │       vendors            │
+                           │   │──────────────────────────│
+                           │   │ id (uuid PK)             │
+                           │   │ name                     │
+                           │   │ domain                   │
+                           │   │ city                     │
+                           │   │ country                  │
+                           │   │ address                  │
+                           │   │ phone                    │
+                           │   │ is_verified (bool)       │
+                           │   │ transparency_score (0-5) │
+                           │   │ total_reviews            │
+                           │   │ avg_price_fairness       │
+                           │   │ verified_until           │
+                           │   │ created_at               │
+                           │   └──────────────────────────┘
+                           │
+                           │   ┌──────────────────────────┐
+                           │   │    vendor_reviews        │
+                           │   │──────────────────────────│
+                           └───│ user_id (FK → profiles)  │
+                               │ vendor_id (FK → vendors) │
+                               │ query_id (FK → queries)  │
+                               │ rating (1-5)             │
+                               │ transparency_rating      │
+                               │ comment                  │
+                               │ created_at               │
+                               └──────────────────────────┘
+</pre>
+  </div>
+</div>
+
+<!-- Key Design Decisions -->
+<div style="margin-top:24px;">
+  <h3>Key Design Decisions</h3>
+</div>
+
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:12px;">
+  <div style="padding:16px;border-radius:12px;background:rgba(0,82,255,0.06);border:1px solid rgba(0,82,255,0.15);">
+    <h4 style="color:#0052FF;margin-top:0;">Dual Market (US + India)</h4>
+    <ul style="font-size:13px;">
+      <li><code>country</code> field on all price tables (IN/US)</li>
+      <li><code>currency</code> field (INR/USD) — no conversion needed</li>
+      <li>City-level granularity for both markets</li>
+      <li>Separate pricing_knowledge rows per country</li>
+      <li>User's country detected from profile, overridable per query</li>
+    </ul>
+  </div>
+
+  <div style="padding:16px;border-radius:12px;background:rgba(0,200,83,0.06);border:1px solid rgba(0,200,83,0.15);">
+    <h4 style="color:#00C853;margin-top:0;">pgvector for Similarity</h4>
+    <ul style="font-size:13px;">
+      <li>Embeddings on <code>community_prices</code> and <code>pricing_knowledge</code></li>
+      <li>"Brake pad replacement Honda City 2020 Mumbai" → find similar past queries</li>
+      <li>Cosine similarity search for relevant price data</li>
+      <li>Supabase has pgvector built-in on free tier</li>
+    </ul>
+  </div>
+
+  <div style="padding:16px;border-radius:12px;background:rgba(255,214,0,0.06);border:1px solid rgba(255,214,0,0.15);">
+    <h4 style="color:#FFD600;margin-top:0;">JSONB for Flexibility</h4>
+    <ul style="font-size:13px;">
+      <li><code>red_flags</code>, <code>questions_to_ask</code>, <code>sources_used</code> as JSONB</li>
+      <li>Different domains produce different structured outputs</li>
+      <li>Auto: parts list, labor breakdown, OEM vs aftermarket</li>
+      <li>Medical: drug names, generic alternatives, dosages</li>
+      <li>No need for rigid schemas on domain-specific data</li>
+    </ul>
+  </div>
+
+  <div style="padding:16px;border-radius:12px;background:rgba(255,61,0,0.06);border:1px solid rgba(255,61,0,0.15);">
+    <h4 style="color:#FF3D00;margin-top:0;">Row-Level Security (RLS)</h4>
+    <ul style="font-size:13px;">
+      <li>Users can only read their own queries & reviews</li>
+      <li>Community prices are read-public, write-authenticated</li>
+      <li>Pricing knowledge is read-public (the core product value)</li>
+      <li>Vendor data is read-public, write-admin-only</li>
+      <li>Supabase Auth handles JWT → RLS automatically</li>
+    </ul>
+  </div>
+</div>
+
+<!-- Indexes -->
+<div style="margin-top:24px;padding:16px;border-radius:12px;background:rgba(0,82,255,0.04);border:1px solid rgba(0,82,255,0.1);">
+  <h4 style="margin-top:0;">Critical Indexes</h4>
+  <ul style="font-size:13px;margin-bottom:0;">
+    <li><code>pricing_knowledge(domain, country, city, category)</code> — fast lookup by domain + location</li>
+    <li><code>community_prices(domain, city, country, created_at DESC)</code> — recent local prices</li>
+    <li><code>queries(user_id, created_at DESC)</code> — user history</li>
+    <li><code>pricing_knowledge USING ivfflat (embedding vector_cosine_ops)</code> — vector similarity</li>
+    <li><code>community_prices USING ivfflat (embedding vector_cosine_ops)</code> — community similarity</li>
+    <li><code>vendors(domain, city, country, is_verified)</code> — verified vendor lookup</li>
+  </ul>
+</div>
+
+<div class="options" style="margin-top:24px;">
+  <div class="option" data-choice="approve" onclick="toggleSelect(this)">
+    <div class="letter">✓</div>
+    <div class="content">
+      <h3>Schema looks good — next section</h3>
+      <p>Show me the API design and frontend screens.</p>
+    </div>
+  </div>
+  <div class="option" data-choice="revise" onclick="toggleSelect(this)">
+    <div class="letter">✎</div>
+    <div class="content">
+      <h3>I have changes to the schema</h3>
+      <p>Let me suggest modifications.</p>
+    </div>
+  </div>
+</div>

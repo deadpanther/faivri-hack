@@ -1,0 +1,1362 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FairCheck — V6 Cinematic Overhaul</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+@property --mesh-1 { syntax:'<color>'; initial-value:rgba(59,130,246,0.07); inherits:false; }
+@property --mesh-2 { syntax:'<color>'; initial-value:rgba(139,92,246,0.05); inherits:false; }
+@property --mesh-angle { syntax:'<angle>'; initial-value:0deg; inherits:false; }
+
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
+
+:root{
+  /* Deep space background */
+  --bg:#08090E;
+  --bg-up:#0E1018;
+  --surface:#13151D;
+  --surface-up:#1A1C28;
+
+  /* Accent — electric indigo to cyan spectrum */
+  --accent:#6366F1;
+  --accent-bright:#818CF8;
+  --accent-wash:rgba(99,102,241,0.06);
+  --accent-glow:rgba(99,102,241,0.20);
+
+  /* Semantic */
+  --green:#34D399;
+  --green-dim:#059669;
+  --green-wash:rgba(52,211,153,0.05);
+  --green-glow:rgba(52,211,153,0.15);
+
+  --red:#F87171;
+  --red-dim:#DC2626;
+  --red-wash:rgba(248,113,113,0.05);
+  --red-glow:rgba(248,113,113,0.15);
+
+  --amber:#FBBF24;
+  --amber-wash:rgba(251,191,36,0.05);
+
+  --cyan:#22D3EE;
+  --purple:#A78BFA;
+
+  /* Text — crisp whites with warmth */
+  --text-1:#F1F0F5;       /* ~14:1 on #08090E */
+  --text-2:#9B9CAF;       /* ~6.5:1 */
+  --text-3:#7B7D96;       /* ~5.1:1 — AA at all sizes */
+
+  --border:rgba(255,255,255,0.06);
+  --border-up:rgba(255,255,255,0.10);
+  --border-accent:rgba(99,102,241,0.12);
+
+  /* Shadows */
+  --shadow-sm:0 2px 8px rgba(0,0,0,0.3);
+  --shadow-md:0 8px 32px rgba(0,0,0,0.4);
+  --shadow-lg:0 24px 80px rgba(0,0,0,0.5);
+  --shadow-glow:0 0 60px rgba(99,102,241,0.06);
+
+  /* Inset glows */
+  --inset:inset 0 1px 0 0 rgba(255,255,255,0.04);
+  --inset-accent:inset 0 1px 0 0 rgba(99,102,241,0.12);
+  --inset-green:inset 0 1px 0 0 rgba(52,211,153,0.12);
+  --inset-red:inset 0 1px 0 0 rgba(248,113,113,0.12);
+
+  /* Radius */
+  --r-sm:10px;
+  --r-md:16px;
+  --r-lg:24px;
+  --r-xl:32px;
+}
+
+body{
+  font-family:'Inter',sans-serif;
+  background:var(--bg);
+  color:var(--text-1);
+  -webkit-font-smoothing:antialiased;
+  -moz-osx-font-smoothing:grayscale;
+  overflow-x:hidden;
+}
+
+/* ===== ACCESSIBILITY ===== */
+/* Global focus ring for keyboard users */
+:focus-visible{
+  outline:2px solid var(--accent-bright);
+  outline-offset:2px;
+}
+/* Remove default outline only when NOT keyboard-navigating */
+:focus:not(:focus-visible){outline:none;}
+
+/* Skip link */
+.skip-link{
+  position:absolute;left:-9999px;top:auto;
+  z-index:9999;padding:10px 20px;border-radius:var(--r-sm);
+  background:var(--accent);color:#fff;
+  font-size:14px;font-weight:600;text-decoration:none;
+  font-family:'Inter',sans-serif;
+}
+.skip-link:focus{left:16px;top:16px;}
+
+/* Visually hidden but screen-reader accessible */
+.sr-only{
+  position:absolute;width:1px;height:1px;
+  padding:0;margin:-1px;overflow:hidden;
+  clip:rect(0,0,0,0);white-space:nowrap;border:0;
+}
+
+/* ================================================================
+   AMBIENT LAYERS — Mesh gradient + grain + grid
+   ================================================================ */
+
+/* Rotating mesh gradient */
+.ambient{
+  position:fixed;inset:0;pointer-events:none;z-index:0;
+  overflow:hidden;
+}
+.ambient::before{
+  content:'';position:absolute;
+  width:160%;height:160%;top:-30%;left:-30%;
+  background:
+    radial-gradient(ellipse 40% 30% at 25% 20%, rgba(99,102,241,0.05), transparent),
+    radial-gradient(ellipse 35% 40% at 75% 30%, rgba(139,92,246,0.04), transparent),
+    radial-gradient(ellipse 30% 35% at 50% 70%, rgba(34,211,238,0.03), transparent),
+    radial-gradient(ellipse 45% 25% at 80% 80%, rgba(99,102,241,0.03), transparent);
+  animation:mesh-rotate 40s linear infinite;
+}
+@keyframes mesh-rotate{to{transform:rotate(360deg);}}
+
+.ambient::after{
+  content:'';position:absolute;inset:0;
+  background:
+    radial-gradient(ellipse 60% 40% at 50% 50%, transparent 40%, var(--bg) 100%);
+}
+
+/* Subtle grid */
+.grid-layer{
+  position:fixed;inset:0;pointer-events:none;z-index:1;
+  background-image:
+    linear-gradient(rgba(255,255,255,0.015) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.015) 1px, transparent 1px);
+  background-size:80px 80px;
+  mask:radial-gradient(ellipse 70% 60% at 50% 40%,rgba(0,0,0,0.4) 0%,transparent 80%);
+  -webkit-mask:radial-gradient(ellipse 70% 60% at 50% 40%,rgba(0,0,0,0.4) 0%,transparent 80%);
+}
+
+/* Film grain */
+.grain{
+  position:fixed;inset:0;pointer-events:none;z-index:2;
+  background:url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.02'/%3E%3C/svg%3E");
+  opacity:0.5;
+}
+
+/* ================================================================
+   SECTION HEADERS
+   ================================================================ */
+.sh{text-align:center;padding:100px 24px 48px;position:relative;z-index:3;}
+.sh .tag{
+  display:inline-flex;align-items:center;gap:8px;
+  padding:6px 16px;border-radius:99px;margin-bottom:16px;
+  background:var(--accent-wash);border:1px solid var(--border-accent);
+  font-family:'JetBrains Mono',monospace;
+  font-size:11px;font-weight:500;letter-spacing:1.5px;text-transform:uppercase;
+  color:var(--accent-bright);
+}
+.sh h1{
+  font-family:'Outfit',sans-serif;font-size:40px;font-weight:800;
+  letter-spacing:-0.5px;color:var(--text-1);
+}
+.sh p{font-size:14px;color:var(--text-3);margin-top:8px;max-width:520px;margin-inline:auto;line-height:1.6;}
+
+/* ================================================================
+   BROWSER FRAME
+   ================================================================ */
+.frame{
+  max-width:1360px;margin:0 auto 120px;border-radius:var(--r-lg);
+  border:1px solid var(--border);overflow:hidden;
+  position:relative;z-index:3;
+  box-shadow:var(--shadow-lg),var(--shadow-glow);
+}
+.frame-bar{
+  display:flex;align-items:center;gap:12px;
+  padding:14px 18px;
+  background:rgba(255,255,255,0.015);border-bottom:1px solid var(--border);
+}
+.frame-dots{display:flex;gap:7px;}
+.frame-dots i{width:12px;height:12px;border-radius:50%;display:block;}
+.frame-dots .r{background:#EF4444;opacity:0.85;} .frame-dots .y{background:#F59E0B;opacity:0.85;} .frame-dots .g{background:#22C55E;opacity:0.85;}
+.frame-url{
+  flex:1;padding:7px 16px;border-radius:8px;
+  background:rgba(255,255,255,0.025);border:1px solid rgba(255,255,255,0.04);
+  font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text-3);
+  display:flex;align-items:center;gap:6px;
+}
+.frame-url svg{width:12px;height:12px;stroke:currentColor;fill:none;stroke-width:2;opacity:0.5;}
+
+/* ================================================================
+   SCENE
+   ================================================================ */
+.scene{position:relative;overflow:hidden;background:var(--bg);}
+
+/* ================================================================
+   CARDS — Atmospheric multi-gradient system
+   ================================================================ */
+.card{
+  border-radius:var(--r-lg);
+  border:1px solid var(--border);
+  box-shadow:var(--shadow-md),var(--inset);
+  transition:all 0.5s cubic-bezier(0.16,1,0.3,1);
+}
+.card:hover{
+  border-color:var(--border-up);
+  box-shadow:0 16px 60px rgba(0,0,0,0.5),var(--inset);
+  transform:translateY(-2px);
+}
+
+/* Atmospheric accent card */
+.card-accent{
+  background:
+    radial-gradient(ellipse 80% 50% at 50% 0%,rgba(99,102,241,0.06),transparent),
+    radial-gradient(ellipse 50% 70% at 85% 100%,rgba(139,92,246,0.03),transparent),
+    linear-gradient(180deg,var(--surface),var(--bg));
+  box-shadow:var(--shadow-md),var(--inset-accent);
+}
+.card-accent:hover{
+  background:
+    radial-gradient(ellipse 80% 50% at 50% 0%,rgba(99,102,241,0.10),transparent),
+    radial-gradient(ellipse 50% 70% at 85% 100%,rgba(139,92,246,0.05),transparent),
+    linear-gradient(180deg,var(--surface-up),var(--surface));
+}
+
+/* Danger card */
+.card-danger{
+  background:
+    radial-gradient(ellipse 80% 50% at 50% 0%,rgba(248,113,113,0.07),transparent),
+    radial-gradient(ellipse 50% 60% at 20% 100%,rgba(251,191,36,0.03),transparent),
+    linear-gradient(180deg,var(--surface),var(--bg));
+  box-shadow:var(--shadow-md),var(--inset-red);
+}
+
+/* Success card */
+.card-green{
+  background:
+    radial-gradient(ellipse 80% 50% at 50% 0%,rgba(52,211,153,0.06),transparent),
+    radial-gradient(ellipse 50% 60% at 80% 100%,rgba(34,211,238,0.03),transparent),
+    linear-gradient(180deg,var(--surface),var(--bg));
+  box-shadow:var(--shadow-md),var(--inset-green);
+}
+
+/* Pure glass */
+.card-glass{
+  background:rgba(255,255,255,0.02);
+  backdrop-filter:blur(80px) saturate(140%);
+  -webkit-backdrop-filter:blur(80px) saturate(140%);
+  box-shadow:var(--shadow-md),inset 0 0 0 1px rgba(255,255,255,0.04),var(--inset);
+}
+
+/* Gradient border via mask-composite */
+.grad-border{position:relative;}
+.grad-border::before{
+  content:'';position:absolute;inset:-1px;border-radius:inherit;
+  background:linear-gradient(135deg,rgba(99,102,241,0.3),transparent 40%,transparent 60%,rgba(139,92,246,0.15));
+  mask:linear-gradient(#fff,#fff) content-box,linear-gradient(#fff,#fff);
+  mask-composite:exclude;-webkit-mask-composite:xor;
+  padding:1px;pointer-events:none;
+  animation:border-breathe 8s ease-in-out infinite;
+}
+@keyframes border-breathe{0%,100%{opacity:0.5;}50%{opacity:0.9;}}
+
+/* ================================================================
+   TEXT STYLES
+   ================================================================ */
+.heading{font-family:'Outfit',sans-serif;font-weight:800;letter-spacing:-0.3px;}
+.mono{font-family:'JetBrains Mono',monospace;}
+
+.gt{-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.gt-hero{
+  background:linear-gradient(135deg,var(--text-1) 10%,var(--accent-bright) 45%,var(--cyan) 80%,var(--purple) 100%);
+  background-size:200% 200%;animation:gt-shift 10s ease-in-out infinite;
+}
+.gt-red{
+  background:linear-gradient(135deg,var(--red) 0%,#FB923C 50%,var(--amber) 100%);
+  background-size:200% 200%;animation:gt-shift 6s ease-in-out infinite;
+}
+.gt-green{
+  background:linear-gradient(135deg,var(--green) 0%,var(--cyan) 100%);
+  background-size:200% 200%;animation:gt-shift 8s ease-in-out infinite;
+}
+@keyframes gt-shift{0%,100%{background-position:0% 50%;}50%{background-position:100% 50%;}}
+
+.text-glow{text-shadow:0 0 40px var(--accent-glow),0 0 80px rgba(99,102,241,0.06);}
+.text-glow-red{text-shadow:0 0 40px var(--red-glow),0 0 80px rgba(248,113,113,0.06);}
+.text-glow-green{text-shadow:0 0 40px var(--green-glow),0 0 80px rgba(52,211,153,0.06);}
+
+/* ================================================================
+   NAV
+   ================================================================ */
+.nav{
+  position:relative;z-index:10;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:16px 40px;
+  border-bottom:1px solid rgba(255,255,255,0.03);
+  backdrop-filter:blur(20px) saturate(120%);
+  -webkit-backdrop-filter:blur(20px) saturate(120%);
+}
+.nav-brand{display:flex;align-items:center;gap:11px;}
+.nav-brand .logo{
+  width:38px;height:38px;border-radius:11px;
+  background:linear-gradient(135deg,var(--accent),var(--purple));
+  display:flex;align-items:center;justify-content:center;
+  box-shadow:0 4px 20px var(--accent-glow);
+  position:relative;
+}
+.nav-brand .logo::after{
+  content:'';position:absolute;inset:-4px;border-radius:15px;
+  background:linear-gradient(135deg,var(--accent),var(--purple),var(--cyan));
+  z-index:-1;opacity:0.15;filter:blur(10px);
+}
+.nav-brand .logo svg{width:20px;height:20px;stroke:#fff;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;}
+.nav-brand span{font-family:'Outfit',sans-serif;font-size:20px;font-weight:800;color:var(--text-1);letter-spacing:-0.3px;}
+
+.nav-links{display:flex;gap:32px;}
+.nav-links a{
+  font-size:13px;color:var(--text-3);text-decoration:none;font-weight:500;
+  transition:color 0.3s;cursor:pointer;position:relative;
+  padding-bottom:2px;
+}
+.nav-links a:hover{color:var(--text-2);}
+.nav-links a.on{color:var(--accent-bright);}
+.nav-links a.on::after{
+  content:'';position:absolute;bottom:-2px;left:0;right:0;height:2px;
+  background:linear-gradient(90deg,var(--accent),var(--cyan));
+  border-radius:1px;box-shadow:0 0 8px var(--accent-glow);
+}
+
+/* ================================================================
+   BUTTONS
+   ================================================================ */
+.btn{
+  padding:9px 20px;border-radius:var(--r-sm);font-size:13px;font-weight:600;
+  cursor:pointer;transition:all 0.35s cubic-bezier(0.16,1,0.3,1);
+  border:none;font-family:'Inter',sans-serif;
+}
+.btn-ghost{
+  background:rgba(255,255,255,0.025);color:var(--text-2);
+  border:1px solid rgba(255,255,255,0.05);
+}
+.btn-ghost:hover{color:var(--text-1);border-color:var(--border-up);background:rgba(255,255,255,0.04);}
+.btn-accent{
+  background:linear-gradient(135deg,var(--accent),var(--accent-bright));
+  color:#fff;box-shadow:0 4px 20px var(--accent-glow);
+  position:relative;overflow:hidden;
+}
+.btn-accent::after{
+  content:'';position:absolute;top:0;left:-100%;width:60%;height:100%;
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,0.08),transparent);
+  animation:btn-sweep 4s ease-in-out infinite;
+}
+@keyframes btn-sweep{0%{left:-100%;}40%{left:110%;}100%{left:110%;}}
+.btn-accent:hover{transform:translateY(-1px);box-shadow:0 6px 28px var(--accent-glow);}
+
+/* ================================================================
+   HOME SCREEN
+   ================================================================ */
+.home{min-height:880px;}
+
+/* Decorative gradients behind hero */
+.home .deco{position:absolute;pointer-events:none;border-radius:50%;}
+.home .deco-1{
+  width:600px;height:600px;top:-200px;right:-100px;
+  background:radial-gradient(circle,rgba(99,102,241,0.06),transparent 70%);
+  filter:blur(80px);
+  animation:deco-float 20s ease-in-out infinite;
+}
+.home .deco-2{
+  width:500px;height:500px;bottom:-100px;left:-150px;
+  background:radial-gradient(circle,rgba(139,92,246,0.04),transparent 70%);
+  filter:blur(100px);
+  animation:deco-float 25s ease-in-out infinite reverse;
+}
+.home .deco-3{
+  width:300px;height:300px;top:40%;left:50%;transform:translateX(-50%);
+  background:radial-gradient(circle,rgba(34,211,238,0.03),transparent 70%);
+  filter:blur(60px);
+  animation:deco-float 15s ease-in-out infinite;
+}
+@keyframes deco-float{
+  0%,100%{transform:translate(0,0) scale(1);}
+  33%{transform:translate(20px,-30px) scale(1.05);}
+  66%{transform:translate(-15px,20px) scale(0.96);}
+}
+
+/* Hero */
+.hero{position:relative;z-index:5;text-align:center;padding:80px 40px 0;}
+.hero-badge{
+  display:inline-flex;align-items:center;gap:8px;
+  padding:7px 16px;border-radius:99px;margin-bottom:24px;
+  background:var(--accent-wash);border:1px solid rgba(99,102,241,0.10);
+  font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--accent-bright);
+  font-weight:500;
+}
+.hero-badge .dot{
+  width:6px;height:6px;border-radius:50%;background:var(--green);
+  box-shadow:0 0 10px var(--green-glow);
+  animation:dot-pulse 2.5s ease-in-out infinite;
+}
+@keyframes dot-pulse{0%,100%{opacity:1;transform:scale(1);}50%{opacity:0.3;transform:scale(0.8);}}
+
+.hero h1{
+  font-family:'Outfit',sans-serif;
+  font-size:64px;font-weight:900;line-height:1.02;letter-spacing:-2.5px;
+  max-width:760px;margin:0 auto;
+}
+.hero h1 .line-2{
+  display:block;font-size:58px;font-weight:400;letter-spacing:-1px;
+  color:var(--text-2);margin-top:4px;
+}
+.hero p{
+  font-size:17px;color:var(--text-2);margin-top:22px;
+  max-width:480px;margin-inline:auto;line-height:1.7;
+}
+
+/* Input Card — main CTA area */
+.input-card{
+  position:relative;z-index:5;
+  max-width:740px;width:100%;margin:44px auto 0;padding:28px;
+  border-radius:var(--r-xl);
+}
+.input-row{display:flex;align-items:center;gap:10px;}
+.input-field{
+  flex:1;padding:16px 20px;border-radius:14px;
+  background:rgba(255,255,255,0.025);border:1px solid rgba(255,255,255,0.05);
+  color:var(--text-1);font-size:15px;font-family:'Inter',sans-serif;outline:none;
+  transition:all 0.4s cubic-bezier(0.16,1,0.3,1);
+}
+.input-field::placeholder{color:var(--text-3);}
+.input-field:focus{
+  border-color:rgba(99,102,241,0.25);
+  box-shadow:0 0 0 3px rgba(99,102,241,0.06),0 0 30px rgba(99,102,241,0.04);
+  background:rgba(255,255,255,0.035);
+}
+
+.ib{
+  width:48px;height:48px;border-radius:13px;border:none;
+  display:flex;align-items:center;justify-content:center;
+  cursor:pointer;transition:all 0.35s cubic-bezier(0.16,1,0.3,1);flex-shrink:0;
+}
+.ib svg{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;}
+.ib-d{background:rgba(255,255,255,0.025);color:var(--text-3);border:1px solid rgba(255,255,255,0.05);}
+.ib-d:hover{color:var(--text-1);background:rgba(255,255,255,0.06);transform:translateY(-2px);}
+.ib-mic{
+  background:linear-gradient(135deg,var(--accent),var(--purple));color:#fff;
+  box-shadow:0 4px 24px var(--accent-glow);position:relative;
+}
+.ib-mic::before{
+  content:'';position:absolute;inset:-5px;border-radius:18px;
+  background:conic-gradient(from 0deg,var(--accent),var(--cyan),var(--purple),var(--accent));
+  z-index:-1;opacity:0.15;filter:blur(12px);
+  animation:mic-aura 8s linear infinite;
+}
+@keyframes mic-aura{to{transform:rotate(360deg);}}
+.ib-mic:hover{transform:translateY(-2px) scale(1.05);box-shadow:0 8px 36px var(--accent-glow);}
+
+/* Domain chips */
+.chips{
+  display:flex;flex-wrap:wrap;gap:8px;margin-top:18px;
+  padding-top:18px;border-top:1px solid rgba(255,255,255,0.03);
+}
+.chip{
+  display:flex;align-items:center;gap:6px;
+  padding:8px 14px;border-radius:var(--r-sm);
+  background:rgba(255,255,255,0.015);border:1px solid rgba(255,255,255,0.04);
+  font-size:12px;color:var(--text-2);cursor:pointer;
+  transition:all 0.35s cubic-bezier(0.16,1,0.3,1);font-weight:500;
+  font-family:'Inter',sans-serif;
+}
+.chip svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;}
+.chip:hover{
+  background:var(--accent-wash);border-color:rgba(99,102,241,0.12);
+  color:var(--accent-bright);transform:translateY(-1px);
+}
+
+/* Live ticker */
+.ticker{
+  position:relative;z-index:5;
+  display:flex;align-items:center;justify-content:center;gap:10px;
+  margin-top:28px;font-size:13px;color:var(--green);font-weight:500;
+}
+
+/* Stats row */
+.stats{
+  position:relative;z-index:5;
+  display:flex;justify-content:center;gap:16px;
+  margin-top:52px;padding:0 40px 48px;
+}
+.stat{
+  text-align:center;padding:24px 32px;border-radius:var(--r-lg);
+  min-width:160px;
+}
+.stat .v{font-family:'Outfit',sans-serif;font-size:30px;font-weight:800;}
+.stat .l{font-size:11px;color:var(--text-3);margin-top:5px;letter-spacing:0.06em;}
+
+/* ================================================================
+   VERDICT SCREEN
+   ================================================================ */
+.verdict{min-height:900px;}
+
+.verdict .deco-1{
+  position:absolute;top:-15%;left:15%;width:55%;aspect-ratio:1.5;
+  background:radial-gradient(50% 50%,rgba(248,113,113,0.05),transparent 70%);
+  filter:blur(100px);pointer-events:none;
+}
+
+.verdict-body{position:relative;z-index:5;padding:24px 44px 48px;}
+
+.back{
+  display:inline-flex;align-items:center;gap:6px;
+  font-size:13px;color:var(--text-2);cursor:pointer;margin-bottom:24px;
+  transition:color 0.3s;font-weight:500;
+}
+.back:hover{color:var(--accent-bright);}
+.back svg{width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;}
+
+.v-grid{display:grid;grid-template-columns:1fr 400px;gap:24px;max-width:1200px;margin:0 auto;}
+
+/* Verdict meta */
+.v-meta{display:flex;align-items:center;justify-content:space-between;margin-bottom:28px;}
+.v-badge{
+  display:inline-flex;align-items:center;gap:7px;
+  padding:7px 14px;border-radius:8px;
+  background:var(--accent-wash);border:1px solid rgba(99,102,241,0.10);
+  font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:500;color:var(--accent-bright);
+}
+.v-badge svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;}
+.v-time{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text-3);}
+
+/* THE MONEY SHOT — cinematic overcharge hero */
+.v-hero{
+  text-align:center;padding:48px 28px;margin-bottom:28px;
+  border-radius:var(--r-lg);position:relative;overflow:hidden;
+}
+.v-hero::before{
+  content:'';position:absolute;top:-40%;left:50%;transform:translateX(-50%);
+  width:400px;height:400px;border-radius:50%;
+  background:radial-gradient(circle,rgba(248,113,113,0.10),transparent 70%);
+  filter:blur(50px);pointer-events:none;
+}
+/* Horizontal accent line at bottom */
+.v-hero::after{
+  content:'';position:absolute;bottom:0;left:10%;right:10%;height:1px;
+  background:linear-gradient(90deg,transparent,rgba(248,113,113,0.15),transparent);
+}
+
+.v-num{
+  font-family:'Outfit',sans-serif;
+  font-size:96px;font-weight:900;letter-spacing:-4px;
+  position:relative;line-height:1;
+}
+.v-status{
+  font-family:'JetBrains Mono',monospace;
+  font-size:13px;font-weight:600;color:var(--red);
+  letter-spacing:4px;text-transform:uppercase;margin-top:8px;
+}
+.v-desc{font-size:14px;color:var(--text-2);margin-top:14px;line-height:1.7;}
+.v-desc strong{color:var(--text-1);}
+
+/* Price gauge */
+.gauge{
+  padding:22px;border-radius:var(--r-md);
+  background:rgba(255,255,255,0.008);border:1px solid rgba(255,255,255,0.03);
+  margin-bottom:20px;
+}
+.gauge-t{
+  font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--text-2);
+  font-weight:500;text-transform:uppercase;letter-spacing:2px;margin-bottom:28px;
+}
+.gauge-track{
+  height:10px;border-radius:5px;
+  background:rgba(255,255,255,0.02);
+  position:relative;margin:28px 0 12px;
+  overflow:visible;
+}
+.gauge-fair{
+  position:absolute;height:100%;border-radius:5px;
+  background:linear-gradient(90deg,var(--green-dim),var(--green));
+  left:15%;width:28%;
+  box-shadow:0 0 18px var(--green-glow);
+}
+.gauge-pin{
+  position:absolute;top:-10px;left:72%;
+  width:3px;height:30px;border-radius:2px;
+  background:linear-gradient(180deg,var(--red),var(--amber));
+  box-shadow:0 0 16px var(--red-glow);
+}
+.gauge-lbl{
+  position:absolute;top:-26px;transform:translateX(-50%);
+  font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:600;white-space:nowrap;
+}
+.gauge-lbl.f{left:29%;color:var(--green);}
+.gauge-lbl.q{left:72%;color:var(--red);}
+.gauge-scale{
+  display:flex;justify-content:space-between;
+  font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--text-3);
+}
+
+/* Analysis breakdown */
+.analysis{
+  padding:18px;border-radius:14px;
+  background:rgba(255,255,255,0.006);border:1px solid rgba(255,255,255,0.025);
+  margin-bottom:16px;
+}
+.analysis h4{
+  font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--text-2);
+  font-weight:500;text-transform:uppercase;letter-spacing:1.5px;margin-bottom:10px;
+}
+.analysis p{font-size:14px;color:var(--text-2);line-height:1.8;}
+.analysis strong{color:var(--text-1);}
+
+/* Confidence ring */
+.conf{display:flex;align-items:center;gap:14px;padding:16px 18px;border-radius:14px;}
+.conf-ring{
+  width:52px;height:52px;border-radius:50%;flex-shrink:0;position:relative;
+  background:conic-gradient(var(--accent-bright) 0deg,var(--cyan) 313deg,rgba(255,255,255,0.02) 313deg);
+  display:flex;align-items:center;justify-content:center;
+  box-shadow:0 0 18px rgba(99,102,241,0.10);
+}
+.conf-ring .ci{
+  width:42px;height:42px;border-radius:50%;
+  background:var(--bg);display:flex;align-items:center;justify-content:center;
+  font-family:'JetBrains Mono',monospace;font-size:14px;font-weight:600;color:var(--accent-bright);
+}
+.conf-text{font-size:13px;color:var(--text-2);line-height:1.6;}
+.conf-text strong{color:var(--text-1);}
+
+/* Sidebar */
+.side{display:flex;flex-direction:column;gap:16px;}
+.sc{padding:22px;border-radius:var(--r-lg);}
+.sc h3,.sc h4{
+  font-family:'Outfit',sans-serif;font-size:14px;font-weight:700;
+  margin-bottom:14px;display:flex;align-items:center;gap:8px;
+}
+.sc h3 svg,.sc h4 svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;}
+
+/* Red flag items */
+.rf{
+  display:flex;align-items:flex-start;gap:10px;
+  padding:12px 14px;border-radius:12px;margin-bottom:8px;
+  background:rgba(248,113,113,0.02);border:1px solid rgba(248,113,113,0.05);
+  transition:all 0.4s cubic-bezier(0.16,1,0.3,1);
+}
+.rf:hover{
+  background:rgba(248,113,113,0.04);border-color:rgba(248,113,113,0.10);
+  transform:translateX(4px);
+}
+.rf svg{width:15px;height:15px;stroke:var(--amber);flex-shrink:0;margin-top:1px;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;}
+.rf svg,.qi svg,.ab svg{pointer-events:none;}
+.rf p{font-size:12px;color:var(--text-2);line-height:1.6;}
+
+/* Question items */
+.qi{
+  display:flex;align-items:flex-start;gap:10px;
+  padding:12px 14px;border-radius:12px;margin-bottom:8px;
+  background:rgba(99,102,241,0.02);border:1px solid rgba(99,102,241,0.05);
+  transition:all 0.4s cubic-bezier(0.16,1,0.3,1);
+}
+.qi:hover{
+  background:rgba(99,102,241,0.04);border-color:rgba(99,102,241,0.10);
+  transform:translateX(4px);
+}
+.qi .qn{
+  width:22px;height:22px;border-radius:7px;flex-shrink:0;
+  background:rgba(99,102,241,0.08);display:flex;align-items:center;justify-content:center;
+  font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:600;color:var(--accent-bright);
+}
+.qi p{font-size:12px;color:var(--text-2);line-height:1.6;}
+
+/* Action buttons */
+.acts{display:flex;flex-direction:column;gap:8px;}
+.ab{
+  display:flex;align-items:center;justify-content:center;gap:8px;
+  padding:13px;border-radius:12px;font-size:13px;font-weight:600;
+  cursor:pointer;transition:all 0.35s cubic-bezier(0.16,1,0.3,1);
+  border:none;font-family:'Inter',sans-serif;width:100%;
+}
+.ab svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;}
+.ab-primary{
+  background:linear-gradient(135deg,var(--accent),var(--accent-bright));
+  color:#fff;box-shadow:0 4px 20px var(--accent-glow);
+  position:relative;overflow:hidden;
+}
+.ab-primary::after{
+  content:'';position:absolute;top:0;left:-100%;width:50%;height:100%;
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,0.08),transparent);
+  animation:btn-sweep 4s ease-in-out infinite;
+}
+.ab-primary:hover{transform:translateY(-2px);box-shadow:0 8px 32px var(--accent-glow);}
+.ab-ghost{background:rgba(255,255,255,0.02);color:var(--text-2);border:1px solid rgba(255,255,255,0.04);}
+.ab-ghost:hover{color:var(--text-1);background:rgba(255,255,255,0.04);}
+.ab-green{background:var(--green-wash);color:var(--green);border:1px solid rgba(52,211,153,0.06);}
+.ab-green:hover{background:rgba(52,211,153,0.10);}
+
+/* ================================================================
+   VAULT / HISTORY SCREEN
+   ================================================================ */
+.vault{min-height:800px;}
+.vault-body{position:relative;z-index:5;padding:24px 44px 48px;max-width:1080px;margin:0 auto;}
+
+.savings-hero{
+  text-align:center;padding:52px;border-radius:var(--r-xl);margin-bottom:32px;
+  position:relative;overflow:hidden;
+}
+.savings-hero::before{
+  content:'';position:absolute;top:-80px;left:50%;transform:translateX(-50%);
+  width:500px;height:500px;border-radius:50%;
+  background:radial-gradient(circle,rgba(52,211,153,0.07),transparent 60%);
+  filter:blur(60px);pointer-events:none;
+}
+.savings-sub{
+  font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--text-2);
+  letter-spacing:3px;text-transform:uppercase;font-weight:500;margin-bottom:12px;
+  position:relative;
+}
+.savings-num{
+  font-family:'Outfit',sans-serif;font-size:68px;font-weight:900;letter-spacing:-3px;
+  position:relative;line-height:1;
+}
+.savings-since{font-size:13px;color:var(--text-2);margin-top:8px;position:relative;}
+
+.savings-row{display:flex;justify-content:center;gap:48px;margin-top:28px;position:relative;}
+.ss .sv{font-family:'Outfit',sans-serif;font-size:26px;font-weight:800;color:var(--text-1);}
+.ss .sl{font-size:11px;color:var(--text-3);letter-spacing:0.05em;margin-top:2px;}
+
+.ht{
+  font-family:'Outfit',sans-serif;font-size:16px;font-weight:700;
+  margin-bottom:16px;color:var(--text-2);
+}
+
+/* History items */
+.hi{
+  display:flex;align-items:center;gap:16px;
+  padding:16px 20px;border-radius:var(--r-md);margin-bottom:8px;
+  background:rgba(255,255,255,0.012);border:1px solid rgba(255,255,255,0.03);
+  cursor:pointer;transition:all 0.5s cubic-bezier(0.16,1,0.3,1);
+}
+.hi:hover{
+  background:rgba(255,255,255,0.03);border-color:rgba(255,255,255,0.07);
+  transform:translateX(6px);
+  box-shadow:-4px 0 24px rgba(99,102,241,0.03),0 6px 24px rgba(0,0,0,0.2);
+}
+.hi-icon{
+  width:44px;height:44px;border-radius:12px;
+  display:flex;align-items:center;justify-content:center;flex-shrink:0;
+}
+.hi-icon svg{width:20px;height:20px;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;}
+.hi-icon.au{background:rgba(99,102,241,0.05);border:1px solid rgba(99,102,241,0.08);}
+.hi-icon.au svg{stroke:var(--accent-bright);}
+.hi-icon.me{background:var(--green-wash);border:1px solid rgba(52,211,153,0.08);}
+.hi-icon.me svg{stroke:var(--green);}
+.hi-icon.ho{background:var(--amber-wash);border:1px solid rgba(251,191,36,0.08);}
+.hi-icon.ho svg{stroke:var(--amber);}
+
+.hi-info{flex:1;}
+.hi-info h4{font-size:13px;font-weight:600;}
+.hi-info p{font-size:11px;color:var(--text-3);margin-top:3px;}
+
+.hi-res{text-align:right;}
+.hi-saved{font-family:'JetBrains Mono',monospace;font-size:15px;font-weight:600;}
+.hi-saved.g{color:var(--green);text-shadow:0 0 12px rgba(52,211,153,0.12);}
+.hi-tag{
+  display:inline-block;margin-top:4px;
+  font-family:'JetBrains Mono',monospace;
+  font-size:10px;font-weight:500;padding:3px 9px;border-radius:6px;
+}
+.hi-tag.oc{background:var(--red-wash);color:var(--red);border:1px solid rgba(248,113,113,0.07);}
+.hi-tag.fa{background:var(--green-wash);color:var(--green);border:1px solid rgba(52,211,153,0.07);}
+.hi-tag.hi{background:var(--amber-wash);color:var(--amber);border:1px solid rgba(251,191,36,0.07);}
+
+/* ================================================================
+   NEGOTIATION LAB SCREEN
+   ================================================================ */
+.negotiate{min-height:860px;}
+.negotiate-body{position:relative;z-index:5;padding:24px 44px 48px;max-width:1100px;margin:0 auto;}
+
+.n-grid{display:grid;grid-template-columns:1fr 340px;gap:24px;}
+
+/* Chat area */
+.chat-area{border-radius:var(--r-lg);padding:28px;}
+.chat-header{
+  display:flex;align-items:center;justify-content:space-between;
+  margin-bottom:24px;padding-bottom:16px;
+  border-bottom:1px solid rgba(255,255,255,0.03);
+}
+.chat-title{
+  font-family:'Outfit',sans-serif;font-size:16px;font-weight:700;
+  display:flex;align-items:center;gap:8px;
+}
+.chat-title svg{width:18px;height:18px;stroke:var(--accent-bright);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;}
+.chat-meta{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text-3);}
+
+/* Chat bubbles */
+.bubble{
+  max-width:85%;padding:14px 18px;border-radius:18px;margin-bottom:12px;
+  font-size:13px;line-height:1.7;position:relative;
+  animation:bubble-in 0.3s cubic-bezier(0.16,1,0.3,1);
+}
+@keyframes bubble-in{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}
+
+.bubble-you{
+  margin-left:auto;
+  background:linear-gradient(135deg,rgba(99,102,241,0.12),rgba(139,92,246,0.08));
+  border:1px solid rgba(99,102,241,0.10);
+  color:var(--text-1);border-bottom-right-radius:6px;
+}
+.bubble-label{
+  font-family:'JetBrains Mono',monospace;font-size:9px;font-weight:600;
+  letter-spacing:1px;text-transform:uppercase;margin-bottom:6px;display:block;
+}
+.bubble-you .bubble-label{color:var(--accent-bright);}
+
+.bubble-expert{
+  margin-right:auto;
+  background:rgba(255,255,255,0.02);
+  border:1px solid rgba(255,255,255,0.04);
+  color:var(--text-2);border-bottom-left-radius:6px;
+}
+.bubble-expert .bubble-label{color:var(--amber);}
+
+.bubble-response{
+  margin-left:auto;
+  background:linear-gradient(135deg,rgba(52,211,153,0.08),rgba(34,211,238,0.05));
+  border:1px solid rgba(52,211,153,0.10);
+  color:var(--text-1);border-bottom-right-radius:6px;
+}
+.bubble-response .bubble-label{color:var(--green);}
+
+.bubble-walkaway{
+  margin-right:auto;max-width:90%;
+  background:linear-gradient(135deg,rgba(248,113,113,0.06),rgba(251,191,36,0.04));
+  border:1px solid rgba(248,113,113,0.08);
+  color:var(--text-2);border-radius:14px;
+  padding:12px 16px;
+}
+.bubble-walkaway .bubble-label{color:var(--red);}
+
+/* Sidebar panels */
+.n-side{display:flex;flex-direction:column;gap:16px;}
+
+.tactics-card{padding:22px;border-radius:var(--r-lg);}
+.tactic{
+  display:flex;align-items:center;gap:10px;width:100%;text-align:left;
+  padding:10px 12px;border-radius:10px;margin-bottom:6px;
+  background:rgba(255,255,255,0.015);border:1px solid rgba(255,255,255,0.03);
+  font-size:12px;color:var(--text-2);cursor:pointer;
+  transition:all 0.3s;font-family:'Inter',sans-serif;
+}
+.tactic:hover{background:var(--accent-wash);border-color:rgba(99,102,241,0.08);color:var(--accent-bright);}
+.tactic svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0;}
+
+.target-card{padding:22px;border-radius:var(--r-lg);text-align:center;}
+.target-label{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--text-3);letter-spacing:2px;text-transform:uppercase;margin-bottom:8px;}
+.target-price{font-family:'Outfit',sans-serif;font-size:36px;font-weight:800;}
+.target-sub{font-size:12px;color:var(--text-3);margin-top:4px;}
+
+.evidence-card{padding:22px;border-radius:var(--r-lg);}
+
+/* ================================================================
+   RESPONSIVE — ensure no horizontal scroll
+   ================================================================ */
+@media(max-width:1024px){
+  .v-grid,.n-grid{grid-template-columns:1fr;gap:20px;}
+  .hero h1{font-size:44px;}
+  .hero h1 .line-2{font-size:38px;}
+  .v-num{font-size:72px;}
+  .stats{flex-wrap:wrap;}
+  .frame{margin-left:20px!important;margin-right:20px!important;}
+  .nav{padding:14px 20px;}
+  .verdict-body,.vault-body,.negotiate-body{padding:20px 24px 40px;}
+}
+@media(max-width:640px){
+  .hero h1{font-size:32px;letter-spacing:-1px;}
+  .hero h1 .line-2{font-size:28px;}
+  .hero p{font-size:15px;}
+  .savings-num{font-size:48px;}
+  .savings-row{gap:24px;}
+  .v-num{font-size:56px;}
+  .stats{gap:8px;}
+  .stat{padding:16px 18px;min-width:auto;}
+  .nav-links{display:none;}
+  .input-card{padding:18px;}
+}
+
+/* ===== REDUCED MOTION ===== */
+@media(prefers-reduced-motion:reduce){
+  *,*::before,*::after{
+    animation-duration:0.01ms!important;
+    animation-iteration-count:1!important;
+    transition-duration:0.15s!important;
+    scroll-behavior:auto!important;
+  }
+}
+</style>
+</head>
+<body>
+<a href="#main-content" class="skip-link">Skip to content</a>
+<div class="ambient" aria-hidden="true"></div>
+<div class="grid-layer" aria-hidden="true"></div>
+<div class="grain" aria-hidden="true"></div>
+
+<!-- ============================================================
+     SCREEN 1: HOME
+     ============================================================ -->
+<div class="sh" id="main-content">
+  <div class="tag">Screen 1</div>
+  <h1>FairCheck — UI Design V6</h1>
+  <p>Rotating mesh ambient, cinematic typography, atmospheric glass cards with gradient borders</p>
+</div>
+
+<div class="frame" style="margin:0 40px 120px;">
+  <div class="frame-bar" aria-hidden="true">
+    <div class="frame-dots"><i class="r"></i><i class="y"></i><i class="g"></i></div>
+    <div class="frame-url">
+      <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+      faircheck.app
+    </div>
+  </div>
+  <div class="scene home">
+    <div class="deco deco-1" aria-hidden="true"></div>
+    <div class="deco deco-2" aria-hidden="true"></div>
+    <div class="deco deco-3" aria-hidden="true"></div>
+
+    <!-- Nav -->
+    <nav class="nav" aria-label="Home screen navigation">
+      <div class="nav-brand">
+        <div class="logo" aria-hidden="true">
+          <svg viewBox="0 0 24 24"><path d="M12 3L2 9l10 6 10-6-10-6z"/><path d="M2 17l10 6 10-6"/><path d="M2 13l10 6 10-6"/></svg>
+        </div>
+        <span>FairCheck</span>
+      </div>
+      <div class="nav-links">
+        <a href="#" class="on">Home</a>
+        <a href="#">History</a>
+        <a href="#">Community</a>
+        <a href="#">Pricing</a>
+      </div>
+      <div style="display:flex;gap:8px;">
+        <button class="btn btn-ghost">Sign In</button>
+        <button class="btn btn-accent">Get Started</button>
+      </div>
+    </nav>
+
+    <!-- Hero -->
+    <div class="hero">
+      <div class="hero-badge">
+        <span class="dot" aria-hidden="true"></span>
+        Trusted by 2.4M+ users
+      </div>
+      <h2>
+        <span class="gt gt-hero">Know if you're<br>being cheated</span>
+        <span class="line-2">in 30 seconds</span>
+      </h2>
+      <p>AI-powered second opinion on car repairs, prescriptions, contractor quotes, and legal fees. Instant. Data-backed. Free.</p>
+    </div>
+
+    <!-- Input Card -->
+    <div class="input-card card card-accent grad-border">
+      <div class="input-row">
+        <label for="quote-input" class="sr-only">Describe your quote or price concern</label>
+        <input id="quote-input" class="input-field" type="text" placeholder="&quot;Mechanic quoted ₹14,000 for brake pads in Pune...&quot;">
+        <button class="ib ib-d" aria-label="Upload image">
+          <svg aria-hidden="true" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+        </button>
+        <button class="ib ib-d" aria-label="Attach file">
+          <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
+        </button>
+        <button class="ib ib-mic" aria-label="Voice input">
+          <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+        </button>
+      </div>
+      <div class="chips" role="group" aria-label="Quick domain filters">
+        <button class="chip" type="button">
+          <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
+          Car Repair
+        </button>
+        <button class="chip" type="button">
+          <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M10.5 1.5H8A6.5 6.5 0 0 0 1.5 8v0A6.5 6.5 0 0 0 8 14.5h0a6.5 6.5 0 0 0 4-1.37"/><path d="M13.5 22.5H16a6.5 6.5 0 0 0 6.5-6.5v0A6.5 6.5 0 0 0 16 9.5h0a6.5 6.5 0 0 0-4 1.37"/></svg>
+          Prescription
+        </button>
+        <button class="chip" type="button">
+          <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+          Contractor
+        </button>
+        <button class="chip" type="button">
+          <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+          Scan Invoice
+        </button>
+        <button class="chip" type="button">
+          <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          Legal
+        </button>
+      </div>
+    </div>
+
+    <!-- Ticker -->
+    <div class="ticker" aria-live="polite">
+      <span aria-hidden="true" style="width:6px;height:6px;border-radius:50%;background:var(--green);box-shadow:0 0 10px var(--green-glow);animation:dot-pulse 2.5s ease-in-out infinite;"></span>
+      Live — Users saved ₹4,82,000 today across 12 cities
+    </div>
+
+    <!-- Stats -->
+    <div class="stats">
+      <div class="stat card card-glass"><div class="v gt gt-hero text-glow">2.4M+</div><div class="l">Quotes Checked</div></div>
+      <div class="stat card card-glass"><div class="v gt gt-green text-glow-green">₹142Cr</div><div class="l">Money Saved</div></div>
+      <div class="stat card card-glass"><div class="v gt gt-hero text-glow">340+</div><div class="l">Cities Covered</div></div>
+      <div class="stat card card-glass"><div class="v gt gt-green text-glow-green">87%</div><div class="l">Accuracy Rate</div></div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ============================================================
+     SCREEN 2: VERDICT
+     ============================================================ -->
+<div class="sh">
+  <div class="tag">Screen 2</div>
+  <h2 class="heading" style="font-size:40px;">Verdict</h2>
+  <p>Cinematic overcharge display with danger atmosphere, data-rich sidebar</p>
+</div>
+
+<div class="frame" style="margin:0 40px 120px;">
+  <div class="frame-bar" aria-hidden="true">
+    <div class="frame-dots"><i class="r"></i><i class="y"></i><i class="g"></i></div>
+    <div class="frame-url">
+      <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+      faircheck.app/result/a7f3b2c1
+    </div>
+  </div>
+  <div class="scene verdict">
+    <div class="deco-1" aria-hidden="true"></div>
+
+    <!-- Nav -->
+    <nav class="nav" aria-label="Verdict screen navigation">
+      <div class="nav-brand">
+        <div class="logo" aria-hidden="true"><svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3L2 9l10 6 10-6-10-6z"/><path d="M2 17l10 6 10-6"/><path d="M2 13l10 6 10-6"/></svg></div>
+        <span>FairCheck</span>
+      </div>
+      <div class="nav-links"><a href="#">Home</a><a href="#">History</a><a href="#">Community</a><a href="#">Pricing</a></div>
+      <div><button class="btn btn-ghost">Rudra</button></div>
+    </nav>
+
+    <div class="verdict-body">
+      <a href="#" class="back">
+        <svg aria-hidden="true" viewBox="0 0 24 24"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+        Back to Home
+      </a>
+
+      <div class="v-grid">
+        <!-- Main column -->
+        <div>
+          <div class="card card-accent" style="padding:32px;">
+            <div class="v-meta">
+              <div class="v-badge">
+                <svg viewBox="0 0 24 24"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
+                Auto Repair — Pune, India
+              </div>
+              <div class="v-time">3.2s analysis</div>
+            </div>
+
+            <!-- THE MONEY SHOT -->
+            <div class="v-hero card-danger" style="border:1px solid rgba(248,113,113,0.08);">
+              <div class="v-num gt gt-red text-glow-red">2.8x</div>
+              <div class="v-status">OVERCHARGED</div>
+              <div class="v-desc">Quoted <strong>₹14,000</strong> — Fair market range is <strong>₹3,500 – ₹5,500</strong></div>
+            </div>
+
+            <!-- Gauge -->
+            <div class="gauge">
+              <div class="gauge-t">Price comparison</div>
+              <div class="gauge-track">
+                <div class="gauge-lbl f">₹3.5K–5.5K</div>
+                <div class="gauge-fair"></div>
+                <div class="gauge-lbl q">₹14,000</div>
+                <div class="gauge-pin"></div>
+              </div>
+              <div class="gauge-scale"><span>₹0</span><span>₹5K</span><span>₹10K</span><span>₹15K</span><span>₹20K</span></div>
+            </div>
+
+            <!-- Analysis -->
+            <div class="analysis">
+              <h3 style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--text-2);font-weight:500;text-transform:uppercase;letter-spacing:1.5px;margin-bottom:10px;">Analysis</h3>
+              <p>Brake pads for Honda City 2019: <strong>₹1,500–2,500</strong> (OEM) or ₹800–1,500 (aftermarket). Rotors rarely need full replacement — resurfacing costs <strong>₹500–800</strong>. Labour in Pune: <strong>₹800–1,200</strong>. Total fair range: ₹3,500–5,500.</p>
+            </div>
+
+            <!-- Confidence -->
+            <div class="conf card card-glass" style="border-radius:14px;">
+              <div class="conf-ring"><div class="ci">87%</div></div>
+              <div class="conf-text"><strong>High confidence</strong> — 340 data points from 8 local garages, OEM catalogs, and 23 community reports in Pune</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Sidebar -->
+        <div class="side">
+          <!-- Red Flags -->
+          <div class="sc card card-danger">
+            <h4 style="color:var(--red);font-family:'Outfit',sans-serif;font-size:14px;font-weight:700;margin-bottom:14px;display:flex;align-items:center;gap:8px;">
+              <svg aria-hidden="true" viewBox="0 0 24 24" style="width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg>
+              Red Flags
+            </h4>
+            <div class="rf">
+              <svg viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+              <p>Full rotor replacement rarely needed — ask for wear measurement before agreeing</p>
+            </div>
+            <div class="rf">
+              <svg viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+              <p>No distinction between OEM and aftermarket parts — likely using cheaper parts at OEM markup</p>
+            </div>
+            <div class="rf">
+              <svg viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+              <p>Bundled service quote hides individual line items — request itemized breakdown</p>
+            </div>
+          </div>
+
+          <!-- Questions -->
+          <div class="sc card card-accent">
+            <h4 style="color:var(--accent-bright);font-family:'Outfit',sans-serif;font-size:14px;font-weight:700;margin-bottom:14px;display:flex;align-items:center;gap:8px;">
+              <svg aria-hidden="true" viewBox="0 0 24 24" style="width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+              Ask Right Now
+            </h4>
+            <div class="qi"><div class="qn">1</div><p>"Can you show me the rotor wear measurement?"</p></div>
+            <div class="qi"><div class="qn">2</div><p>"Are these OEM Honda parts or aftermarket? Show packaging."</p></div>
+            <div class="qi"><div class="qn">3</div><p>"Can I see the old parts before you install new ones?"</p></div>
+          </div>
+
+          <!-- Actions -->
+          <div class="sc card card-glass">
+            <h4 style="color:var(--amber);font-family:'Outfit',sans-serif;font-size:14px;font-weight:700;margin-bottom:14px;display:flex;align-items:center;gap:8px;">
+              <svg aria-hidden="true" viewBox="0 0 24 24" style="width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+              Next Steps
+            </h4>
+            <div class="acts">
+              <button class="ab ab-primary">
+                <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                Negotiation Coach
+              </button>
+              <button class="ab ab-ghost">
+                <svg viewBox="0 0 24 24"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+                Share Evidence
+              </button>
+              <button class="ab ab-green">
+                <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+                Report Final Price
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ============================================================
+     SCREEN 3: VAULT / HISTORY
+     ============================================================ -->
+<div class="sh">
+  <div class="tag">Screen 3</div>
+  <h2 class="heading" style="font-size:40px;">Vault</h2>
+  <p>Dramatic savings hero with green atmosphere, polished history items</p>
+</div>
+
+<div class="frame" style="margin:0 40px 120px;">
+  <div class="frame-bar" aria-hidden="true">
+    <div class="frame-dots"><i class="r"></i><i class="y"></i><i class="g"></i></div>
+    <div class="frame-url">
+      <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+      faircheck.app/vault
+    </div>
+  </div>
+  <div class="scene vault">
+    <nav class="nav" aria-label="Vault screen navigation">
+      <div class="nav-brand">
+        <div class="logo" aria-hidden="true"><svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3L2 9l10 6 10-6-10-6z"/><path d="M2 17l10 6 10-6"/><path d="M2 13l10 6 10-6"/></svg></div>
+        <span>FairCheck</span>
+      </div>
+      <div class="nav-links"><a href="#">Home</a><a href="#" class="on">History</a><a href="#">Community</a><a href="#">Pricing</a></div>
+      <div><button class="btn btn-ghost">Rudra</button></div>
+    </nav>
+
+    <div class="vault-body">
+      <!-- Savings Hero -->
+      <div class="savings-hero card card-green" style="padding:52px;">
+        <div class="savings-sub">Total money saved</div>
+        <div class="savings-num gt gt-green text-glow-green">₹34,500</div>
+        <div class="savings-since">Since March 2026 — 12 checks completed</div>
+        <div class="savings-row">
+          <div class="ss"><div class="sv">12</div><div class="sl">Queries</div></div>
+          <div class="ss"><div class="sv">8</div><div class="sl">Overcharges</div></div>
+          <div class="ss"><div class="sv">5</div><div class="sl">Negotiations</div></div>
+          <div class="ss"><div class="sv">3</div><div class="sl">Community</div></div>
+        </div>
+      </div>
+
+      <!-- History List -->
+      <h3 class="ht">Recent Checks</h3>
+
+      <a href="#" class="hi" style="text-decoration:none;color:inherit;">
+        <div class="hi-icon au"><svg aria-hidden="true" viewBox="0 0 24 24"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg></div>
+        <div class="hi-info"><h4>Brake Pads + Rotors — Honda City 2019</h4><p>Pune, India · 2 hours ago</p></div>
+        <div class="hi-res"><div class="hi-saved g">₹9,500 saved</div><div class="hi-tag oc">2.8x</div></div>
+      </a>
+
+      <a href="#" class="hi" style="text-decoration:none;color:inherit;">
+        <div class="hi-icon me"><svg aria-hidden="true" viewBox="0 0 24 24"><path d="M10.5 1.5H8A6.5 6.5 0 0 0 1.5 8v0A6.5 6.5 0 0 0 8 14.5h0a6.5 6.5 0 0 0 4-1.37"/><path d="M13.5 22.5H16a6.5 6.5 0 0 0 6.5-6.5v0A6.5 6.5 0 0 0 16 9.5h0a6.5 6.5 0 0 0-4 1.37"/></svg></div>
+        <div class="hi-info"><h4>Antibiotic Prescription — 5 medicines</h4><p>Mumbai, India · Yesterday</p></div>
+        <div class="hi-res"><div class="hi-saved g">₹2,200 saved</div><div class="hi-tag oc">4.6x</div></div>
+      </a>
+
+      <a href="#" class="hi" style="text-decoration:none;color:inherit;">
+        <div class="hi-icon ho"><svg aria-hidden="true" viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg></div>
+        <div class="hi-info"><h4>Bathroom Renovation Quote</h4><p>Bangalore, India · 3 days ago</p></div>
+        <div class="hi-res"><div class="hi-saved g">₹18,000 saved</div><div class="hi-tag oc">1.9x</div></div>
+      </a>
+
+      <a href="#" class="hi" style="text-decoration:none;color:inherit;">
+        <div class="hi-icon au"><svg aria-hidden="true" viewBox="0 0 24 24"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg></div>
+        <div class="hi-info"><h4>Oil Change — Maruti Swift</h4><p>Pune, India · 1 week ago</p></div>
+        <div class="hi-res"><div class="hi-saved" style="color:var(--text-3);">—</div><div class="hi-tag fa">Fair Price</div></div>
+      </a>
+
+      <a href="#" class="hi" style="text-decoration:none;color:inherit;">
+        <div class="hi-icon me"><svg aria-hidden="true" viewBox="0 0 24 24"><path d="M10.5 1.5H8A6.5 6.5 0 0 0 1.5 8v0A6.5 6.5 0 0 0 8 14.5h0a6.5 6.5 0 0 0 4-1.37"/><path d="M13.5 22.5H16a6.5 6.5 0 0 0 6.5-6.5v0A6.5 6.5 0 0 0 16 9.5h0a6.5 6.5 0 0 0-4 1.37"/></svg></div>
+        <div class="hi-info"><h4>Blood Test Panel — 12 markers</h4><p>Mumbai, India · 2 weeks ago</p></div>
+        <div class="hi-res"><div class="hi-saved g">₹4,800 saved</div><div class="hi-tag hi">1.4x</div></div>
+      </a>
+    </div>
+  </div>
+</div>
+
+
+<!-- ============================================================
+     SCREEN 4: NEGOTIATION LAB
+     ============================================================ -->
+<div class="sh">
+  <div class="tag">Screen 4</div>
+  <h2 class="heading" style="font-size:40px;">Negotiation Lab</h2>
+  <p>AI-powered negotiation coach with role-play script, tactics sidebar, and evidence kit</p>
+</div>
+
+<div class="frame" style="margin:0 40px 120px;">
+  <div class="frame-bar" aria-hidden="true">
+    <div class="frame-dots"><i class="r"></i><i class="y"></i><i class="g"></i></div>
+    <div class="frame-url">
+      <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+      faircheck.app/negotiate/a7f3b2c1
+    </div>
+  </div>
+  <div class="scene negotiate">
+    <nav class="nav" aria-label="Negotiation screen navigation">
+      <div class="nav-brand">
+        <div class="logo" aria-hidden="true"><svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3L2 9l10 6 10-6-10-6z"/><path d="M2 17l10 6 10-6"/><path d="M2 13l10 6 10-6"/></svg></div>
+        <span>FairCheck</span>
+      </div>
+      <div class="nav-links"><a href="#">Home</a><a href="#">History</a><a href="#">Community</a><a href="#">Pricing</a></div>
+      <div><button class="btn btn-ghost">Rudra</button></div>
+    </nav>
+
+    <div class="negotiate-body">
+      <a href="#" class="back">
+        <svg aria-hidden="true" viewBox="0 0 24 24"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+        Back to Verdict
+      </a>
+
+      <div class="n-grid">
+        <!-- Chat Script -->
+        <div class="chat-area card card-accent">
+          <div class="chat-header">
+            <div class="chat-title">
+              <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+              Negotiation Script
+            </div>
+            <div class="chat-meta">Brake Pads + Rotors · Honda City 2019</div>
+          </div>
+
+          <!-- Conversation flow -->
+          <div class="bubble bubble-you">
+            <span class="bubble-label">You say</span>
+            "I've done some research. The OEM brake pads for Honda City are ₹1,500–2,500, and most garages in Pune charge ₹800–1,200 for labor. Can you walk me through how you arrived at ₹14,000?"
+          </div>
+
+          <div class="bubble bubble-expert">
+            <span class="bubble-label">They might say</span>
+            "Sir, we're using genuine Honda parts and the rotors also need full replacement. It's the standard rate."
+          </div>
+
+          <div class="bubble bubble-response">
+            <span class="bubble-label">You respond</span>
+            "I understand. But can you show me the rotor wear measurement? Rotors usually only need resurfacing at ₹500–800 unless they're below minimum thickness. Also, can I see the parts packaging to confirm they're OEM?"
+          </div>
+
+          <div class="bubble bubble-walkaway">
+            <span class="bubble-label">If they refuse</span>
+            "I appreciate your time, but I'd like to get a second quote. Three other garages in Pune quoted ₹4,000–5,500 for the same work."
+          </div>
+        </div>
+
+        <!-- Sidebar -->
+        <div class="n-side">
+          <!-- Target Price -->
+          <div class="target-card card card-green">
+            <div class="target-label">Target price</div>
+            <div class="target-price gt gt-green text-glow-green">₹4,500</div>
+            <div class="target-sub">Walk away above ₹6,000</div>
+          </div>
+
+          <!-- Tactics -->
+          <div class="tactics-card card card-glass">
+            <h3 class="heading" style="font-size:14px;margin-bottom:14px;display:flex;align-items:center;gap:8px;">
+              <svg viewBox="0 0 24 24" style="width:16px;height:16px;stroke:var(--accent-bright);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
+              Tactics
+            </h3>
+            <button class="tactic" type="button">
+              <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/></svg>
+              Anchor Low — Start at ₹3,500
+            </button>
+            <button class="tactic" type="button">
+              <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+              Ask for Proof — Request measurements
+            </button>
+            <button class="tactic" type="button">
+              <svg aria-hidden="true" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+              Remove Urgency — "I'll think about it"
+            </button>
+            <button class="tactic" type="button">
+              <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+              Mention Alternatives — Name competitors
+            </button>
+          </div>
+
+          <!-- Evidence Kit -->
+          <div class="evidence-card card card-glass">
+            <h3 class="heading" style="font-size:14px;margin-bottom:14px;display:flex;align-items:center;gap:8px;">
+              <svg viewBox="0 0 24 24" style="width:16px;height:16px;stroke:var(--amber);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+              Evidence Kit
+            </h3>
+            <div class="acts">
+              <button class="ab ab-ghost">
+                <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                Download PDF Report
+              </button>
+              <button class="ab ab-ghost">
+                <svg viewBox="0 0 24 24"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>
+                Share on WhatsApp
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

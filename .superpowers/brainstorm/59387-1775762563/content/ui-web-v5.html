@@ -1,0 +1,726 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FairCheck — v5 Glassmorphism</title>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+@property --card-from { syntax:'<color>'; initial-value:#1A1628; inherits:false; }
+@property --card-to { syntax:'<color>'; initial-value:#0D0917; inherits:false; }
+
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
+
+:root{
+  --bg:#0D0917;
+  --surface:#1A1628;
+  --surface-up:#252236;
+
+  --accent:#5B8DEF;
+  --accent-soft:#7FA8F7;
+  --accent-wash:rgba(91,141,239,0.08);
+  --accent-glow:rgba(91,141,239,0.25);
+
+  --warm:#EE6F45;
+  --warm-soft:#F4915E;
+  --warm-wash:rgba(238,111,69,0.08);
+  --warm-glow:rgba(238,111,69,0.2);
+
+  --green:#4CB87A;
+  --green-wash:rgba(76,184,122,0.06);
+  --green-glow:rgba(76,184,122,0.18);
+
+  --red:#DB6059;          /* ~4.7:1 on #0D0917 — AA normal text */
+  --red-wash:rgba(219,96,89,0.06);
+  --red-glow:rgba(219,96,89,0.18);
+
+  --amber:#D4A84A;
+  --purple:#9B7FD4;
+  --cyan:#6DB8D4;
+
+  --text-1:#F0EDE8;       /* ~14:1 on #0D0917 */
+  --text-2:#A8A3B0;       /* ~7:1 on #0D0917 */
+  --text-3:#847F8C;       /* ~4.6:1 on #0D0917 — AA normal text */
+
+  --border:rgba(255,255,255,0.07);
+  --border-up:rgba(255,255,255,0.12);
+
+  --inset-glow:inset 0 1px 0 0 rgba(255,255,255,0.06);
+  --inset-warm:inset 0 1px 0 0 rgba(238,111,69,0.18);
+  --inset-accent:inset 0 1px 0 0 rgba(91,141,239,0.18);
+  --inset-green:inset 0 1px 0 0 rgba(76,184,122,0.18);
+  --inset-red:inset 0 1px 0 0 rgba(219,96,89,0.18);
+}
+
+body{
+  font-family:'Inter',sans-serif;
+  background:var(--bg);
+  color:var(--text-1);
+  -webkit-font-smoothing:antialiased;
+  overflow-x:hidden;
+}
+
+/* ===== AMBIENT LAYER ===== */
+.ambient{
+  position:fixed;inset:0;pointer-events:none;z-index:0;
+}
+/* Large soft glow — n8n style */
+.ambient::before{
+  content:'';position:absolute;
+  width:120%;aspect-ratio:2;
+  top:-30%;left:-10%;
+  background:radial-gradient(50% 50% at 50% 50%,rgba(91,141,239,0.04),transparent 70%);
+  transform:rotate(-15deg);
+  filter:blur(80px);
+}
+.ambient::after{
+  content:'';position:absolute;
+  width:80%;height:60%;bottom:-20%;right:-10%;
+  background:radial-gradient(50% 50%,rgba(155,127,212,0.03),transparent 70%);
+  filter:blur(100px);
+}
+
+/* Dot grid overlay */
+.dots-bg{
+  position:fixed;inset:0;pointer-events:none;z-index:1;
+  background:radial-gradient(rgba(255,255,255,0.04) 1px,transparent 0);
+  background-size:20px 20px;
+  mask:radial-gradient(ellipse 60% 50% at 50% 40%,#000 30%,transparent 80%);
+  -webkit-mask:radial-gradient(ellipse 60% 50% at 50% 40%,#000 30%,transparent 80%);
+}
+
+/* ===== SECTION HEADERS ===== */
+.sh{text-align:center;padding:80px 24px 36px;position:relative;z-index:2;}
+.sh .tag{
+  display:inline-flex;align-items:center;gap:6px;
+  padding:6px 14px;border-radius:99px;
+  background:rgba(255,255,255,0.04);border:1px solid var(--border);
+  font-family:'JetBrains Mono',monospace;
+  font-size:11px;font-weight:500;letter-spacing:1px;text-transform:uppercase;
+  color:var(--text-2);margin-bottom:14px;
+}
+.sh h1{font-family:'Manrope',sans-serif;font-size:34px;font-weight:800;letter-spacing:-0.3px;color:var(--text-1);}
+.sh p{font-size:14px;color:var(--text-3);margin-top:6px;max-width:480px;margin-inline:auto;}
+
+/* ===== BROWSER FRAME ===== */
+.frame{
+  max-width:1300px;margin:0 auto 100px;border-radius:1.5rem;
+  border:1px solid var(--border);overflow:hidden;
+  position:relative;z-index:2;
+  box-shadow:0 40px 120px rgba(0,0,0,0.5),var(--inset-glow);
+}
+.frame-bar{
+  display:flex;align-items:center;gap:10px;
+  padding:12px 16px;
+  background:rgba(255,255,255,0.02);border-bottom:1px solid var(--border);
+}
+.frame-dots{display:flex;gap:6px;}
+.frame-dots i{width:11px;height:11px;border-radius:50%;display:block;}
+.frame-dots .r{background:#D4564F;} .frame-dots .y{background:#D4A84A;} .frame-dots .g{background:#4CB87A;}
+.frame-url{
+  flex:1;padding:6px 14px;border-radius:8px;
+  background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.04);
+  font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text-3);
+}
+
+/* ===== SCENE ===== */
+.scene{position:relative;overflow:hidden;background:var(--bg);}
+
+/* ===== n8n STYLE CARDS — multi-gradient + inset warm glow ===== */
+.card{
+  border-radius:1.5rem;
+  border:1px solid var(--border);
+  box-shadow:0 8px 40px rgba(0,0,0,0.3),var(--inset-glow);
+  transition:all 0.4s cubic-bezier(.4,0,.2,1);
+}
+.card:hover{
+  border-color:var(--border-up);
+  box-shadow:0 16px 60px rgba(0,0,0,0.4),var(--inset-glow);
+  transform:translateY(-3px);
+}
+
+/* Atmospheric card — multi-layer radial gradients like n8n */
+.card-atmos{
+  background:
+    radial-gradient(ellipse 80% 50% at 50% 0%,rgba(91,141,239,0.06),transparent),
+    radial-gradient(ellipse 60% 80% at 80% 100%,rgba(155,127,212,0.04),transparent),
+    linear-gradient(180deg,var(--surface),var(--bg));
+  box-shadow:0 8px 40px rgba(0,0,0,0.3),var(--inset-accent);
+}
+.card-atmos:hover{
+  background:
+    radial-gradient(ellipse 80% 50% at 50% 0%,rgba(91,141,239,0.1),transparent),
+    radial-gradient(ellipse 60% 80% at 80% 100%,rgba(155,127,212,0.06),transparent),
+    linear-gradient(180deg,var(--surface-up),var(--surface));
+}
+
+/* Warm card — orange/red atmospheric */
+.card-warm{
+  background:
+    radial-gradient(ellipse 70% 60% at 50% 0%,rgba(238,111,69,0.06),transparent),
+    radial-gradient(ellipse 50% 70% at 100% 80%,rgba(219,96,89,0.04),transparent),
+    linear-gradient(180deg,var(--surface),var(--bg));
+  box-shadow:0 8px 40px rgba(0,0,0,0.3),var(--inset-warm);
+}
+
+/* Red danger card */
+.card-danger{
+  background:
+    radial-gradient(ellipse 80% 50% at 50% 0%,rgba(219,96,89,0.08),transparent),
+    radial-gradient(ellipse 60% 60% at 20% 100%,rgba(212,168,74,0.03),transparent),
+    linear-gradient(180deg,var(--surface),var(--bg));
+  box-shadow:0 8px 40px rgba(0,0,0,0.3),var(--inset-red);
+  backdrop-filter:blur(80px);-webkit-backdrop-filter:blur(80px);
+}
+
+/* Green success card */
+.card-green{
+  background:
+    radial-gradient(ellipse 80% 50% at 50% 0%,rgba(76,184,122,0.06),transparent),
+    radial-gradient(ellipse 50% 60% at 80% 100%,rgba(109,184,212,0.03),transparent),
+    linear-gradient(180deg,var(--surface),var(--bg));
+  box-shadow:0 8px 40px rgba(0,0,0,0.3),var(--inset-green);
+}
+
+/* Pure glass — n8n's white-transparent style */
+.card-glass{
+  background:rgba(255,255,255,0.025);
+  backdrop-filter:blur(120px) saturate(130%);
+  -webkit-backdrop-filter:blur(120px) saturate(130%);
+  box-shadow:0 8px 40px rgba(0,0,0,0.3),inset 0 0 0 1px rgba(255,255,255,0.06),var(--inset-glow);
+}
+
+/* ===== GRADIENT BORDER (n8n mask-composite technique) ===== */
+.grad-border{
+  position:relative;
+}
+.grad-border::before{
+  content:'';position:absolute;inset:-1px;border-radius:inherit;
+  background:linear-gradient(135deg,rgba(91,141,239,0.25),transparent 40%,transparent 60%,rgba(155,127,212,0.15));
+  mask:linear-gradient(#fff,#fff) content-box,linear-gradient(#fff,#fff);
+  mask-composite:exclude;-webkit-mask-composite:xor;
+  padding:1px;pointer-events:none;
+}
+
+/* ===== TEXT STYLES ===== */
+.heading{font-family:'Manrope',sans-serif;font-weight:800;letter-spacing:-0.3px;}
+.mono{font-family:'JetBrains Mono',monospace;}
+
+/* Text glow — LangChain style */
+.text-glow{
+  text-shadow:0 0 30px var(--accent-glow),0 0 60px rgba(91,141,239,0.08);
+}
+.text-glow-red{
+  text-shadow:0 0 30px var(--red-glow),0 0 60px rgba(219,96,89,0.08);
+}
+.text-glow-green{
+  text-shadow:0 0 30px var(--green-glow),0 0 60px rgba(76,184,122,0.08);
+}
+
+/* Gradient text */
+.gt{-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.gt-hero{background:linear-gradient(135deg,var(--text-1) 10%,var(--accent-soft) 50%,var(--purple) 90%);}
+.gt-red{background:linear-gradient(135deg,var(--red) 0%,var(--warm-soft) 50%,var(--amber) 100%);}
+.gt-green{background:linear-gradient(135deg,var(--green) 0%,var(--cyan) 100%);}
+
+/* ===== NAV ===== */
+.nav{
+  position:relative;z-index:10;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:14px 36px;
+  border-bottom:1px solid rgba(255,255,255,0.04);
+  backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
+}
+.nav-brand{display:flex;align-items:center;gap:10px;}
+.nav-brand .logo{
+  width:36px;height:36px;border-radius:10px;
+  background:linear-gradient(135deg,var(--accent),var(--purple));
+  display:flex;align-items:center;justify-content:center;
+  box-shadow:0 2px 12px var(--accent-glow),var(--inset-glow);
+}
+.nav-brand .logo svg{width:18px;height:18px;stroke:#fff;fill:none;stroke-width:2;}
+.nav-brand span{font-family:'Manrope',sans-serif;font-size:18px;font-weight:800;color:var(--text-1);letter-spacing:-0.3px;}
+
+.nav-links{display:flex;gap:28px;}
+.nav-links a{
+  font-size:13px;color:var(--text-2);text-decoration:none;font-weight:500;
+  transition:color 0.2s;cursor:pointer;
+}
+.nav-links a:hover{color:var(--text-1);}
+.nav-links a.on{color:var(--accent-soft);}
+
+.btn{
+  padding:8px 18px;border-radius:10px;font-size:13px;font-weight:600;
+  cursor:pointer;transition:all 0.3s cubic-bezier(.4,0,.2,1);
+  border:none;font-family:'Inter',sans-serif;
+}
+.btn-ghost{background:rgba(255,255,255,0.03);color:var(--text-2);border:1px solid var(--border);}
+.btn-ghost:hover{color:var(--text-1);border-color:var(--border-up);background:rgba(255,255,255,0.04);}
+.btn-accent{
+  background:linear-gradient(135deg,var(--accent),#7FA8F7);color:#fff;
+  box-shadow:0 2px 12px var(--accent-glow);
+}
+.btn-accent:hover{transform:translateY(-1px);box-shadow:0 4px 20px var(--accent-glow);}
+
+/* ===== HOME ===== */
+.home{min-height:840px;}
+
+/* Decorative blurs behind hero */
+.home .deco-1{
+  position:absolute;top:-15%;right:-5%;width:50%;aspect-ratio:1.5;
+  background:radial-gradient(50% 50%,rgba(91,141,239,0.06),transparent 70%);
+  filter:blur(80px);pointer-events:none;
+}
+.home .deco-2{
+  position:absolute;bottom:-10%;left:-8%;width:40%;aspect-ratio:1.5;
+  background:radial-gradient(50% 50%,rgba(155,127,212,0.04),transparent 70%);
+  filter:blur(80px);pointer-events:none;
+}
+
+.hero{position:relative;z-index:5;text-align:center;padding:72px 40px 0;}
+.hero-badge{
+  display:inline-flex;align-items:center;gap:6px;
+  padding:6px 14px;border-radius:99px;margin-bottom:20px;
+  background:var(--accent-wash);border:1px solid rgba(91,141,239,0.12);
+  font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--accent-soft);
+}
+.hero-badge .dot{width:6px;height:6px;border-radius:50%;background:var(--accent);box-shadow:0 0 8px var(--accent-glow);animation:blink 2s ease-in-out infinite;}
+@keyframes blink{0%,100%{opacity:1;}50%{opacity:0.3;}}
+
+.hero h1{
+  font-family:'Manrope',sans-serif;
+  font-size:58px;font-weight:800;line-height:1.05;letter-spacing:-2px;
+  max-width:700px;margin:0 auto;
+}
+.hero p{font-size:17px;color:var(--text-2);margin-top:18px;max-width:460px;margin-inline:auto;line-height:1.7;}
+
+/* Input — atmospheric glass card */
+.input-card{
+  position:relative;z-index:5;
+  max-width:700px;width:100%;margin:36px auto 0;padding:24px;
+  border-radius:1.5rem;
+}
+.input-row{display:flex;align-items:center;gap:10px;}
+.input-field{
+  flex:1;padding:14px 18px;border-radius:12px;
+  background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.05);
+  color:var(--text-1);font-size:15px;font-family:'Inter',sans-serif;outline:none;
+  transition:all 0.3s;
+}
+.input-field::placeholder{color:var(--text-3);}
+.input-field:focus{border-color:rgba(91,141,239,0.2);box-shadow:0 0 20px rgba(91,141,239,0.04);}
+
+.ib{
+  width:46px;height:46px;border-radius:12px;border:none;
+  display:flex;align-items:center;justify-content:center;
+  cursor:pointer;transition:all 0.3s;flex-shrink:0;
+}
+.ib svg{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;}
+.ib-d{background:rgba(255,255,255,0.03);color:var(--text-2);border:1px solid rgba(255,255,255,0.05);}
+.ib-d:hover{color:var(--text-1);background:rgba(255,255,255,0.06);transform:translateY(-1px);}
+.ib-mic{
+  background:linear-gradient(135deg,var(--accent),var(--purple));color:#fff;
+  box-shadow:0 2px 16px var(--accent-glow);
+}
+.ib-mic:hover{transform:translateY(-2px);box-shadow:0 6px 28px var(--accent-glow);}
+
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px;padding-top:14px;border-top:1px solid rgba(255,255,255,0.03);}
+.chip{
+  display:flex;align-items:center;gap:5px;
+  padding:7px 13px;border-radius:8px;
+  background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.04);
+  font-size:12px;color:var(--text-2);cursor:pointer;
+  transition:all 0.3s;font-weight:500;
+}
+.chip svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;}
+.chip:hover{background:var(--accent-wash);border-color:rgba(91,141,239,0.1);color:var(--accent-soft);}
+
+/* Ticker */
+.ticker{
+  position:relative;z-index:5;
+  display:flex;align-items:center;justify-content:center;gap:8px;
+  margin-top:22px;font-size:13px;color:var(--green);font-weight:500;
+}
+
+/* Stats — n8n style glass cards with warm inset glow */
+.stats{
+  position:relative;z-index:5;
+  display:flex;justify-content:center;gap:16px;
+  margin-top:44px;padding:0 40px 40px;
+}
+.stat{text-align:center;padding:22px 28px;border-radius:1.25rem;}
+.stat .v{font-family:'Manrope',sans-serif;font-size:28px;font-weight:800;}
+.stat .l{font-size:11px;color:var(--text-3);margin-top:4px;letter-spacing:0.04em;}
+
+/* ===== VERDICT ===== */
+.verdict{min-height:860px;}
+
+.verdict .deco-1{
+  position:absolute;top:-10%;left:10%;width:50%;aspect-ratio:1.5;
+  background:radial-gradient(50% 50%,rgba(219,96,89,0.05),transparent 70%);
+  filter:blur(80px);pointer-events:none;
+}
+
+.verdict-body{position:relative;z-index:5;padding:20px 44px 44px;}
+.back{
+  display:inline-flex;align-items:center;gap:5px;
+  font-size:13px;color:var(--text-2);cursor:pointer;margin-bottom:20px;transition:color 0.2s;
+}
+.back:hover{color:var(--accent-soft);}
+.back svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;}
+
+.v-grid{display:grid;grid-template-columns:1fr 380px;gap:20px;max-width:1160px;margin:0 auto;}
+
+.v-meta{display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;}
+.v-badge{
+  display:inline-flex;align-items:center;gap:6px;
+  padding:6px 13px;border-radius:8px;
+  background:var(--accent-wash);border:1px solid rgba(91,141,239,0.1);
+  font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:500;color:var(--accent-soft);
+}
+.v-badge svg{width:14px;height:14px;}
+.v-time{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text-3);}
+
+/* Hero verdict — danger card with backdrop blur */
+.v-hero{
+  text-align:center;padding:40px 24px;margin-bottom:24px;
+  border-radius:1.25rem;position:relative;overflow:hidden;
+}
+.v-hero::before{
+  content:'';position:absolute;top:-30%;left:50%;transform:translateX(-50%);
+  width:300px;height:300px;border-radius:50%;
+  background:radial-gradient(circle,rgba(219,96,89,0.1),transparent 70%);
+  filter:blur(40px);pointer-events:none;
+}
+.v-num{
+  font-family:'Manrope',sans-serif;
+  font-size:80px;font-weight:800;letter-spacing:-3px;
+  position:relative;
+}
+.v-status{
+  font-family:'JetBrains Mono',monospace;
+  font-size:13px;font-weight:600;color:var(--red);
+  letter-spacing:3px;text-transform:uppercase;margin-top:4px;
+}
+.v-desc{font-size:14px;color:var(--text-2);margin-top:10px;line-height:1.6;}
+.v-desc strong{color:var(--text-1);}
+
+/* Gauge */
+.gauge{padding:20px;border-radius:1rem;background:rgba(255,255,255,0.01);border:1px solid rgba(255,255,255,0.03);margin-bottom:16px;}
+.gauge-t{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--text-2);font-weight:500;text-transform:uppercase;letter-spacing:2px;margin-bottom:24px;}
+.gauge-track{height:10px;border-radius:5px;background:rgba(255,255,255,0.025);position:relative;margin:24px 0 10px;}
+.gauge-fair{
+  position:absolute;height:100%;border-radius:5px;
+  background:linear-gradient(90deg,var(--green),#6DD49A);
+  left:15%;width:28%;
+  box-shadow:0 0 14px var(--green-glow);
+}
+.gauge-pin{
+  position:absolute;top:-8px;left:72%;
+  width:3px;height:26px;border-radius:2px;
+  background:linear-gradient(180deg,var(--red),var(--amber));
+  box-shadow:0 0 12px var(--red-glow);
+}
+.gauge-lbl{position:absolute;top:-24px;transform:translateX(-50%);font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:600;white-space:nowrap;}
+.gauge-lbl.f{left:29%;color:var(--green);}
+.gauge-lbl.q{left:72%;color:var(--red);}
+.gauge-scale{display:flex;justify-content:space-between;font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--text-3);}
+
+/* Analysis */
+.analysis{padding:16px;border-radius:12px;background:rgba(255,255,255,0.008);border:1px solid rgba(255,255,255,0.03);margin-bottom:14px;}
+.analysis h4{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--text-2);font-weight:500;text-transform:uppercase;letter-spacing:1.5px;margin-bottom:8px;}
+.analysis p{font-size:14px;color:var(--text-2);line-height:1.8;}
+.analysis strong{color:var(--text-1);}
+
+/* Confidence */
+.conf{display:flex;align-items:center;gap:12px;padding:14px 16px;border-radius:12px;}
+.conf-ring{
+  width:48px;height:48px;border-radius:50%;flex-shrink:0;position:relative;
+  background:conic-gradient(var(--accent-soft) 0deg,var(--accent) 313deg,rgba(255,255,255,0.03) 313deg);
+  display:flex;align-items:center;justify-content:center;
+  box-shadow:0 0 14px rgba(91,141,239,0.12);
+}
+.conf-ring .ci{
+  width:38px;height:38px;border-radius:50%;
+  background:var(--bg);display:flex;align-items:center;justify-content:center;
+  font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:600;color:var(--accent-soft);
+}
+.conf-text{font-size:12px;color:var(--text-2);line-height:1.6;}
+.conf-text strong{color:var(--text-1);}
+
+/* Sidebar */
+.side{display:flex;flex-direction:column;gap:14px;}
+.sc{padding:20px;border-radius:1.25rem;}
+.sc h3{
+  font-family:'Manrope',sans-serif;font-size:14px;font-weight:700;
+  margin-bottom:12px;display:flex;align-items:center;gap:6px;
+}
+.sc h3 svg{width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;}
+
+/* Red flag items */
+.rf{
+  display:flex;align-items:flex-start;gap:8px;
+  padding:10px 12px;border-radius:10px;margin-bottom:6px;
+  background:rgba(219,96,89,0.02);border:1px solid rgba(219,96,89,0.04);
+  transition:all 0.3s;
+}
+.rf:hover{background:rgba(219,96,89,0.04);border-color:rgba(219,96,89,0.08);transform:translateX(2px);}
+.rf svg{width:14px;height:14px;stroke:var(--amber);flex-shrink:0;margin-top:1px;fill:none;stroke-width:2;}
+.rf p{font-size:12px;color:var(--text-2);line-height:1.6;}
+
+/* Question items */
+.qi{
+  display:flex;align-items:flex-start;gap:8px;
+  padding:10px 12px;border-radius:10px;margin-bottom:6px;
+  background:rgba(91,141,239,0.02);border:1px solid rgba(91,141,239,0.04);
+  transition:all 0.3s;
+}
+.qi:hover{background:rgba(91,141,239,0.04);border-color:rgba(91,141,239,0.08);transform:translateX(2px);}
+.qi .qn{
+  width:20px;height:20px;border-radius:6px;flex-shrink:0;
+  background:rgba(91,141,239,0.06);display:flex;align-items:center;justify-content:center;
+  font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:600;color:var(--accent-soft);
+}
+.qi p{font-size:12px;color:var(--text-2);line-height:1.6;}
+
+/* Action buttons */
+.acts{display:flex;flex-direction:column;gap:8px;}
+.ab{
+  display:flex;align-items:center;justify-content:center;gap:7px;
+  padding:12px;border-radius:12px;font-size:13px;font-weight:600;
+  cursor:pointer;transition:all 0.3s;border:none;font-family:'Inter',sans-serif;width:100%;
+}
+.ab svg{width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;}
+.ab-primary{background:linear-gradient(135deg,var(--accent),var(--accent-soft));color:#fff;box-shadow:0 2px 14px var(--accent-glow);}
+.ab-primary:hover{transform:translateY(-1px);box-shadow:0 4px 24px var(--accent-glow);}
+.ab-ghost{background:rgba(255,255,255,0.02);color:var(--text-2);border:1px solid rgba(255,255,255,0.04);}
+.ab-ghost:hover{color:var(--text-1);background:rgba(255,255,255,0.04);}
+.ab-green{background:var(--green-wash);color:var(--green);border:1px solid rgba(76,184,122,0.06);}
+.ab-green:hover{background:rgba(76,184,122,0.1);}
+
+/* ===== VAULT ===== */
+.vault{min-height:780px;}
+.vault-body{position:relative;z-index:5;padding:20px 44px 44px;max-width:1060px;margin:0 auto;}
+
+.savings-hero{
+  text-align:center;padding:44px;border-radius:1.5rem;margin-bottom:28px;
+  position:relative;overflow:hidden;
+}
+.savings-hero::before{
+  content:'';position:absolute;top:-60px;left:50%;transform:translateX(-50%);
+  width:400px;height:400px;border-radius:50%;
+  background:radial-gradient(circle,rgba(76,184,122,0.06),transparent 65%);
+  filter:blur(60px);pointer-events:none;
+}
+.savings-sub{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--text-2);letter-spacing:2px;text-transform:uppercase;margin-bottom:8px;position:relative;}
+.savings-num{font-family:'Manrope',sans-serif;font-size:60px;font-weight:800;letter-spacing:-2px;position:relative;}
+.savings-since{font-size:13px;color:var(--text-2);margin-top:4px;position:relative;}
+.savings-row{display:flex;justify-content:center;gap:40px;margin-top:22px;position:relative;}
+.ss .sv{font-family:'Manrope',sans-serif;font-size:24px;font-weight:800;color:var(--text-1);}
+.ss .sl{font-size:11px;color:var(--text-3);}
+
+.ht{font-family:'Manrope',sans-serif;font-size:14px;font-weight:700;margin-bottom:12px;color:var(--text-2);}
+
+.hi{
+  display:flex;align-items:center;gap:14px;
+  padding:14px 18px;border-radius:14px;margin-bottom:8px;
+  background:rgba(255,255,255,0.012);border:1px solid rgba(255,255,255,0.03);
+  cursor:pointer;transition:all 0.4s cubic-bezier(.4,0,.2,1);
+}
+.hi:hover{
+  background:rgba(255,255,255,0.03);border-color:rgba(255,255,255,0.07);
+  transform:translateX(5px);
+  box-shadow:0 4px 20px rgba(0,0,0,0.2);
+}
+.hi-icon{
+  width:42px;height:42px;border-radius:11px;
+  display:flex;align-items:center;justify-content:center;flex-shrink:0;
+}
+.hi-icon svg{width:18px;height:18px;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;}
+.hi-icon.au{background:rgba(91,141,239,0.04);border:1px solid rgba(91,141,239,0.07);}
+.hi-icon.au svg{stroke:var(--accent-soft);}
+.hi-icon.me{background:var(--green-wash);border:1px solid rgba(76,184,122,0.07);}
+.hi-icon.me svg{stroke:var(--green);}
+.hi-icon.ho{background:rgba(212,168,74,0.04);border:1px solid rgba(212,168,74,0.07);}
+.hi-icon.ho svg{stroke:var(--amber);}
+
+.hi-info{flex:1;}
+.hi-info h4{font-size:13px;font-weight:600;}
+.hi-info p{font-size:11px;color:var(--text-3);margin-top:2px;}
+
+.hi-res{text-align:right;}
+.hi-saved{font-family:'JetBrains Mono',monospace;font-size:14px;font-weight:600;}
+.hi-saved.g{color:var(--green);}
+.hi-tag{
+  display:inline-block;margin-top:3px;
+  font-family:'JetBrains Mono',monospace;
+  font-size:10px;font-weight:500;padding:2px 8px;border-radius:6px;
+}
+.hi-tag.oc{background:var(--red-wash);color:var(--red);border:1px solid rgba(219,96,89,0.07);}
+.hi-tag.fa{background:var(--green-wash);color:var(--green);border:1px solid rgba(76,184,122,0.07);}
+.hi-tag.hi{background:rgba(212,168,74,0.04);color:var(--amber);border:1px solid rgba(212,168,74,0.07);}
+</style>
+</head>
+<body>
+<div class="ambient"></div>
+<div class="dots-bg"></div>
+
+<!-- ============ HOME ============ -->
+<div class="sh">
+  <div class="tag">Screen 1</div>
+  <h1>Home</h1>
+  <p>n8n-style atmospheric cards, radial glow ambient layer, masked dot grid</p>
+</div>
+
+<div class="frame" style="margin:0 40px 100px;">
+  <div class="frame-bar"><div class="frame-dots"><i class="r"></i><i class="y"></i><i class="g"></i></div><div class="frame-url">faircheck.app</div></div>
+  <div class="scene home">
+    <div class="deco-1"></div><div class="deco-2"></div>
+    <div class="nav">
+      <div class="nav-brand"><div class="logo"><svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3L1 9l4 2.18v6L12 21l7-3.82v-6l2-1.09V17"/><circle cx="12" cy="13" r="3"/></svg></div><span>FairCheck</span></div>
+      <div class="nav-links"><a class="on">Home</a><a>History</a><a>Community</a><a>Pricing</a></div>
+      <div style="display:flex;gap:8px;"><button class="btn btn-ghost">Sign In</button><button class="btn btn-accent">Get Started</button></div>
+    </div>
+    <div class="hero">
+      <div class="hero-badge"><span class="dot"></span>Trusted by 2.4M+ users</div>
+      <h1><span class="gt gt-hero">Know if you're being cheated</span><br>in 30 seconds</h1>
+      <p>AI-powered second opinion for car repairs, medical bills, contractor quotes. Instant. Data-backed.</p>
+    </div>
+    <div class="input-card card card-atmos grad-border" style="padding:24px;">
+      <div class="input-row">
+        <input class="input-field" type="text" placeholder="&quot;Mechanic quoted ₹14,000 for brake pads in Pune...&quot;">
+        <button class="ib ib-d"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg></button>
+        <button class="ib ib-d"><svg viewBox="0 0 24 24"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg></button>
+        <button class="ib ib-mic"><svg viewBox="0 0 24 24"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg></button>
+      </div>
+      <div class="chips">
+        <div class="chip"><svg viewBox="0 0 24 24"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>Car Repair</div>
+        <div class="chip"><svg viewBox="0 0 24 24"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>Prescription</div>
+        <div class="chip"><svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>Contractor</div>
+        <div class="chip"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>Scan Invoice</div>
+        <div class="chip"><svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>Legal</div>
+      </div>
+    </div>
+    <div class="ticker"><span class="dot" style="width:6px;height:6px;border-radius:50%;background:var(--green);box-shadow:0 0 8px var(--green-glow);animation:blink 2s ease-in-out infinite;"></span>Live — Users saved ₹4,82,000 today across 12 cities</div>
+    <div class="stats">
+      <div class="stat card card-glass"><div class="v gt gt-hero text-glow">2.4M+</div><div class="l">Quotes Checked</div></div>
+      <div class="stat card card-glass"><div class="v gt gt-green text-glow-green">₹142Cr</div><div class="l">Money Saved</div></div>
+      <div class="stat card card-glass"><div class="v gt gt-hero text-glow">340+</div><div class="l">Cities Covered</div></div>
+      <div class="stat card card-glass"><div class="v gt gt-green text-glow-green">87%</div><div class="l">Accuracy</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ VERDICT ============ -->
+<div class="sh">
+  <div class="tag">Screen 2</div>
+  <h1>Verdict</h1>
+  <p>n8n warm-inset glow cards, danger atmosphere, backdrop blur glass</p>
+</div>
+
+<div class="frame" style="margin:0 40px 100px;">
+  <div class="frame-bar"><div class="frame-dots"><i class="r"></i><i class="y"></i><i class="g"></i></div><div class="frame-url">faircheck.app/result/a7f3b2c1</div></div>
+  <div class="scene verdict">
+    <div class="deco-1"></div>
+    <div class="nav">
+      <div class="nav-brand"><div class="logo"><svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3L1 9l4 2.18v6L12 21l7-3.82v-6l2-1.09V17"/><circle cx="12" cy="13" r="3"/></svg></div><span>FairCheck</span></div>
+      <div class="nav-links"><a>Home</a><a>History</a><a>Community</a><a>Pricing</a></div>
+      <div><button class="btn btn-ghost">Rudra</button></div>
+    </div>
+    <div class="verdict-body">
+      <div class="back"><svg viewBox="0 0 24 24"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>Back</div>
+      <div class="v-grid">
+        <div>
+          <div class="card card-atmos" style="padding:32px;">
+            <div class="v-meta">
+              <div class="v-badge"><svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="2" stroke-linecap="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>Auto Repair — Pune</div>
+              <div class="v-time">3.2s</div>
+            </div>
+            <div class="v-hero card-danger" style="border:1px solid rgba(219,96,89,0.08);">
+              <div class="v-num gt gt-red text-glow-red">2.8x</div>
+              <div class="v-status">OVERCHARGED</div>
+              <div class="v-desc">Quoted <strong>₹14,000</strong> — Fair range <strong>₹3,500 – ₹5,500</strong></div>
+            </div>
+            <div class="gauge">
+              <div class="gauge-t">Price comparison</div>
+              <div class="gauge-track">
+                <div class="gauge-lbl f">₹3.5K–5.5K</div>
+                <div class="gauge-fair"></div>
+                <div class="gauge-lbl q">₹14,000</div>
+                <div class="gauge-pin"></div>
+              </div>
+              <div class="gauge-scale"><span>₹0</span><span>₹5K</span><span>₹10K</span><span>₹15K</span><span>₹20K</span></div>
+            </div>
+            <div class="analysis">
+              <h4>Analysis</h4>
+              <p>Brake pads: <strong>₹1,500–2,500</strong> OEM / ₹800–1,500 aftermarket. Rotors rarely need full replacement — resurfacing ₹500–800. Labour in Pune: ₹800–1,200.</p>
+            </div>
+            <div class="conf card card-glass" style="border-radius:12px;">
+              <div class="conf-ring"><div class="ci">87%</div></div>
+              <div class="conf-text"><strong>High confidence</strong> — 340 data points from 8 garages, OEM catalogs, 23 community reports</div>
+            </div>
+          </div>
+        </div>
+        <div class="side">
+          <div class="sc card card-warm">
+            <h3 style="color:var(--warm-soft);"><svg viewBox="0 0 24 24"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg>Red Flags</h3>
+            <div class="rf"><svg viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg><p>Full rotor replacement rarely needed — ask for wear measurement</p></div>
+            <div class="rf"><svg viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg><p>No OEM vs aftermarket distinction — likely inflated pricing</p></div>
+          </div>
+          <div class="sc card card-atmos">
+            <h3 style="color:var(--accent-soft);"><svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>Ask Right Now</h3>
+            <div class="qi"><div class="qn">1</div><p>"Show me the rotor wear measurement"</p></div>
+            <div class="qi"><div class="qn">2</div><p>"OEM or aftermarket? Show the packaging"</p></div>
+            <div class="qi"><div class="qn">3</div><p>"Can I see the old parts before install?"</p></div>
+          </div>
+          <div class="sc card card-glass">
+            <h3 style="color:var(--amber);"><svg viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>Next Steps</h3>
+            <div class="acts">
+              <button class="ab ab-primary"><svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>Negotiation Coach</button>
+              <button class="ab ab-ghost"><svg viewBox="0 0 24 24"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>Share</button>
+              <button class="ab ab-green"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>Report Price</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ VAULT ============ -->
+<div class="sh">
+  <div class="tag">Screen 3</div>
+  <h1>Vault</h1>
+  <p>Green atmospheric savings card, layered glass history items</p>
+</div>
+
+<div class="frame" style="margin:0 40px 100px;">
+  <div class="frame-bar"><div class="frame-dots"><i class="r"></i><i class="y"></i><i class="g"></i></div><div class="frame-url">faircheck.app/vault</div></div>
+  <div class="scene vault">
+    <div class="nav">
+      <div class="nav-brand"><div class="logo"><svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3L1 9l4 2.18v6L12 21l7-3.82v-6l2-1.09V17"/><circle cx="12" cy="13" r="3"/></svg></div><span>FairCheck</span></div>
+      <div class="nav-links"><a>Home</a><a class="on">History</a><a>Community</a><a>Pricing</a></div>
+      <div><button class="btn btn-ghost">Rudra</button></div>
+    </div>
+    <div class="vault-body">
+      <div class="savings-hero card card-green" style="padding:44px;">
+        <div class="savings-sub">Total money saved</div>
+        <div class="savings-num gt gt-green text-glow-green">₹34,500</div>
+        <div class="savings-since">Since March 2026</div>
+        <div class="savings-row">
+          <div class="ss"><div class="sv">12</div><div class="sl">Queries</div></div>
+          <div class="ss"><div class="sv">8</div><div class="sl">Overcharges</div></div>
+          <div class="ss"><div class="sv">5</div><div class="sl">Negotiations</div></div>
+          <div class="ss"><div class="sv">3</div><div class="sl">Community</div></div>
+        </div>
+      </div>
+      <h3 class="ht">Recent Checks</h3>
+      <div class="hi"><div class="hi-icon au"><svg viewBox="0 0 24 24"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg></div><div class="hi-info"><h4>Brake Pads + Rotors — Honda City</h4><p>Pune · 2 hours ago</p></div><div class="hi-res"><div class="hi-saved g">₹9,500</div><div class="hi-tag oc">2.8x</div></div></div>
+      <div class="hi"><div class="hi-icon me"><svg viewBox="0 0 24 24"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg></div><div class="hi-info"><h4>Antibiotic Prescription — 5 medicines</h4><p>Mumbai · Yesterday</p></div><div class="hi-res"><div class="hi-saved g">₹2,200</div><div class="hi-tag oc">4.6x</div></div></div>
+      <div class="hi"><div class="hi-icon ho"><svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg></div><div class="hi-info"><h4>Bathroom Renovation Quote</h4><p>Bangalore · 3 days ago</p></div><div class="hi-res"><div class="hi-saved g">₹18,000</div><div class="hi-tag oc">1.9x</div></div></div>
+      <div class="hi"><div class="hi-icon au"><svg viewBox="0 0 24 24"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg></div><div class="hi-info"><h4>Oil Change — Maruti Swift</h4><p>Pune · 1 week ago</p></div><div class="hi-res"><div class="hi-saved" style="color:var(--text-3);">—</div><div class="hi-tag fa">Fair</div></div></div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,47 @@
+# Dependencies
+node_modules/
+__pycache__/
+*.pyc
+.pyo
+*.egg-info/
+dist/
+build/
+*.egg
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+
+# Next.js
+frontend/.next/
+frontend/out/
+
+# Python
+backend/*.db
+backend/venv/
+backend/.venv/
+
+# Logs
+*.log
+npm-debug.log*
+
+# Testing
+coverage/
+.pytest_cache/
+htmlcov/
+
+# OS
+Thumbs.db
+
+# Local scratch / launch notes (don't ship to repo)
+LAUNCH_TWEETS.md
+*.scratch.md
+docs/_drafts/

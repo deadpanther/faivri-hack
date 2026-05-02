@@ -1,0 +1,57 @@
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="sunset" x1="150" y1="300" x2="345" y2="205" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#FF5E7E"/>
+      <stop offset="0.55" stop-color="#FF7A5C"/>
+      <stop offset="1" stop-color="#FFB199"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Faivri hidden-signal F mark -->
+  <path
+    d="M152 92
+       H378
+       L342 138
+       H214
+       C200 138 192 146 192 160
+       V220
+       H330
+       L294 266
+       H192
+       V354
+       C192 370 184 382 170 390
+       L152 402
+       V92Z"
+    fill="#1C1C1C"/>
+
+  <!-- Inner cut creates the stylized F spacing -->
+  <path
+    d="M192 220
+       L254 166
+       H342
+       L310 207
+       H252
+       L215 240
+       H192
+       V220Z"
+    fill="#F7F7F5"/>
+
+  <!-- Hidden market/data signal -->
+  <path
+    d="M154 286
+       L210 242
+       L236 258
+       L296 202
+       L342 202"
+    stroke="url(#sunset)"
+    stroke-width="11"
+    stroke-linecap="round"
+    stroke-linejoin="round"/>
+
+  <!-- Small notch for a more crafted logo feel -->
+  <path
+    d="M306 202 L286 222"
+    stroke="#F7F7F5"
+    stroke-width="8"
+    stroke-linecap="round"/>
+</svg>
