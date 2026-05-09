@@ -4,7 +4,7 @@ from fastapi import APIRouter, Depends
 from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.services.database import get_session as get_db
+from app.services.database import get_db
 from app.services import nia as nia_service
 from app.services.auth import get_optional_user_id
 

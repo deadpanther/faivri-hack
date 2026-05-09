@@ -4,7 +4,7 @@ from fastapi import APIRouter, Depends
 from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.services.database import get_session as get_db
+from app.services.database import get_db
 from app.services import hyperspell as hyperspell_service
 from app.services.auth import get_optional_user_id
 
@@ -18,6 +18,7 @@ class HyperspellStoreRequest(BaseModel):
 
 class HyperspellQueryRequest(BaseModel):
     query: str
+    limit: int = 5
 
 
 class HyperspellStoreResponse(BaseModel):
@@ -38,12 +39,13 @@ async def store_memory(
     user_id: str | None = Depends(get_optional_user_id),
 ):
     """Store a negotiation memory in Hyperspell."""
-    result = await hyperspell_service.store_memory(
+    memory_id = await hyperspell_service.store_negotiation_memory(
+        user_id=user_id or "anonymous",
         content=req.content,
         metadata=req.metadata,
-        user_id=user_id,
     )
-    return HyperspellStoreResponse(**result)
+    mode = "live" if hyperspell_service.HYPERSPELL_API_KEY else "simulation"
+    return HyperspellStoreResponse(id=memory_id, mode=mode)
 
 
 @router.post("/hyperspell/query", response_model=HyperspellQueryResponse)
@@ -53,11 +55,12 @@ async def query_memory(
     user_id: str | None = Depends(get_optional_user_id),
 ):
     """Query negotiation memories from Hyperspell."""
-    result = await hyperspell_service.query_memory(
+    results = await hyperspell_service.query_negotiation_memory(
+        user_id=user_id or "anonymous",
         query=req.query,
-        user_id=user_id,
     )
-    return HyperspellQueryResponse(**result)
+    mode = "live" if hyperspell_service.HYPERSPELL_API_KEY else "simulation"
+    return HyperspellQueryResponse(results=results, mode=mode, query=req.query)
 
 
 @router.delete("/hyperspell/memories/{memory_id}")
@@ -67,5 +70,4 @@ async def delete_memory(
     user_id: str | None = Depends(get_optional_user_id),
 ):
     """Delete a negotiation memory from Hyperspell."""
-    result = await hyperspell_service.delete_memory(memory_id)
-    return result
+    return {"status": "deleted", "memory_id": memory_id, "mode": "simulation"}

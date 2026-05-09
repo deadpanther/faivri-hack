@@ -22,10 +22,15 @@ class Settings(BaseSettings):
     # Tensorlake: background price monitoring sandbox (Always-On track).
     tensorlake_api_key: str = ""
     tensorlake_api_url: str = "https://api.tensorlake.ai"
+    # InsForge: auth + database + storage (Ship It track).
+    insforge_url: str = ""
+    insforge_anon_key: str = ""
+    insforge_service_role_key: str = ""
 
     # ─── LLM inference ─────────────────────────────────────────────────
     # The legacy GPU adapter (now wraps Anthropic/OpenAI directly).
     gmi_cloud_api_key: str = ""
+    gmi_cloud_timeout: float = 8.0
     # Negotiation memory feature flag (backed by Postgres).
     hydradb_enabled: bool = True
 
@@ -35,7 +40,7 @@ class Settings(BaseSettings):
     # Prod Clerk signs tokens with `iss=https://clerk.<your-domain>`, so the
     # custom domain suffix (e.g. ".faivri.com") must be listed here.
     clerk_allowed_issuer_hosts: str = ""
-    cors_origins: str = "http://localhost:3000"
+    cors_origins: str = "http://localhost:3000,http://localhost:8008"
     default_provider: str = "anthropic"
     admin_api_key: str = ""
 

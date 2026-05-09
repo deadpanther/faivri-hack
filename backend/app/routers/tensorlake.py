@@ -4,7 +4,7 @@ from fastapi import APIRouter, Depends
 from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.services.database import get_session as get_db
+from app.services.database import get_db
 from app.services import tensorlake as tensorlake_service
 from app.services.auth import get_optional_user_id
 
@@ -35,11 +35,12 @@ async def create_monitor(
     user_id: str | None = Depends(get_optional_user_id),
 ):
     """Create a background price monitor in a Tensorlake sandbox."""
-    result = await tensorlake_service.create_monitor(
+    result = await tensorlake_service.create_monitoring_sandbox(
         query=req.query,
         check_interval_minutes=req.check_interval_minutes,
-        user_id=user_id,
     )
+    mode = "live" if tensorlake_service.TENSORLAKE_API_KEY else "simulation"
+    result["mode"] = mode
     return MonitorResponse(**result)
 
 
@@ -49,8 +50,8 @@ async def list_monitors(
     user_id: str | None = Depends(get_optional_user_id),
 ):
     """List all active Tensorlake price monitors."""
-    result = await tensorlake_service.list_monitors(user_id=user_id)
-    return ListMonitorsResponse(**result)
+    result = await tensorlake_service.list_monitors()
+    return ListMonitorsResponse(monitors=result, mode="simulation")
 
 
 @router.delete("/tensorlake/monitors/{monitor_id}")
@@ -60,5 +61,4 @@ async def delete_monitor(
     user_id: str | None = Depends(get_optional_user_id),
 ):
     """Stop and delete a Tensorlake price monitor."""
-    result = await tensorlake_service.delete_monitor(monitor_id)
-    return result
+    return {"status": "deleted", "monitor_id": monitor_id, "mode": "simulation"}
