@@ -13,7 +13,7 @@ from starlette.middleware.base import BaseHTTPMiddleware
 from app.config import settings
 from app.services.database import engine
 from app.services.limiter import limiter
-from app.routers import analyze, negotiate, feedback, history, community, vehicles, recommend, waitlist, usage, webhooks, extension, extension_auth, student, billing, webhooks_stripe, share, messages, memory
+from app.routers import analyze, negotiate, feedback, history, community, vehicles, recommend, waitlist, usage, webhooks, extension, extension_auth, student, billing, webhooks_stripe, share, messages, memory, nia, hyperspell, tensorlake
 
 logger = logging.getLogger(__name__)
 
@@ -142,10 +142,12 @@ app.include_router(extension_auth.router, prefix="/api/v1", tags=["extension"])
 app.include_router(student.router, prefix="/api/v1", tags=["student"])
 app.include_router(billing.router, prefix="/api/v1", tags=["billing"])
 app.include_router(share.router, prefix="/api/v1", tags=["share"])
-# Faivri partner-tech routers — added for the Build Matcha & Code launch.
-# `messages` is the Photon reply coach, `memory` exposes HydraDB.
+# Hackathon sponsor routers — Nia (context search), Hyperspell (negotiation memory), Tensorlake (price monitors)
 app.include_router(messages.router, prefix="/api/v1", tags=["messages"])
 app.include_router(memory.router, prefix="/api/v1", tags=["memory"])
+app.include_router(nia.router, prefix="/api/v1", tags=["nia"])
+app.include_router(hyperspell.router, prefix="/api/v1", tags=["hyperspell"])
+app.include_router(tensorlake.router, prefix="/api/v1", tags=["tensorlake"])
 
 
 @app.get("/health")
@@ -155,23 +157,23 @@ async def health():
 
 @app.get("/integrations")
 async def integrations():
-    """Report which Faivri partner integrations are live in this deploy.
+    """Report which hackathon sponsor integrations are live in this deploy.
 
-    Surfaces honest "Powered by ..." signals to the frontend so the
-    landing page only credits a partner when their key is actually
-    configured. GMI Cloud has a separate adapter module, HydraDB is
-    in-process on top of Postgres, and Photon is in-process on top of
-    GMI Cloud + the negotiation memory layer.
+    Surfaces honest 'Powered by ...' signals to the frontend so the
+    landing page only credits a sponsor when their key is actually
+    configured.
     """
-    from app.services import gmi_cloud, hydradb, photon
+    from app.services import nia, hyperspell, tensorlake
 
     return {
         "service": "faivri-api",
         "tagline": "AI-powered negotiation agent",
-        "partners": {
-            "gmi_cloud": gmi_cloud.status(),
-            "hydradb": hydradb.status(),
-            "photon": photon.status(),
+        "hackathon": "Nozomio AI Nexus — May 9, 2026",
+        "track": "Ship It + Company Brain + Always-On Agents",
+        "sponsors": {
+            "nia": nia.status(),
+            "hyperspell": hyperspell.status(),
+            "tensorlake": tensorlake.status(),
         },
     }
 

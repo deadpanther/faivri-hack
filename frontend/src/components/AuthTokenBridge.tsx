@@ -1,30 +1,11 @@
 'use client'
 
-import { useAuth } from '@clerk/nextjs'
-import { useEffect } from 'react'
-
-import { setAuthTokenGetter } from '@/lib/api'
-
 /**
- * Registers Clerk's `getToken()` with the shared `api` client so every call
- * out of `api.ts` includes `Authorization: Bearer <jwt>`. Must live inside a
- * <ClerkProvider>. Without this, signed-in users still hit 401 on
- * `require_user_id` endpoints (history detail, negotiate, feedback, etc.).
+ * AuthTokenBridge — now backed by InsForge instead of Clerk.
+ * The InsForgeAuthProvider handles the token bridge internally
+ * via its own useEffect. This component is kept as a no-op
+ * placeholder for backwards compatibility with the layout tree.
  */
 export function AuthTokenBridge(): null {
-  const { getToken, isLoaded, isSignedIn } = useAuth()
-
-  useEffect(() => {
-    if (!isLoaded) return
-    if (!isSignedIn) {
-      setAuthTokenGetter(null)
-      return
-    }
-    setAuthTokenGetter(() => getToken())
-    return () => {
-      setAuthTokenGetter(null)
-    }
-  }, [getToken, isLoaded, isSignedIn])
-
   return null
 }

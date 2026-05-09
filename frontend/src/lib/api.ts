@@ -481,8 +481,8 @@ export const api = {
     return uploadRequest<VerdictData>('/api/v1/analyze/voice', formData)
   },
 
-  // ─── Photon — message reply coach ────────────────────────────────────────
-  // Reads the negotiation memory HydraDB stores for a verdict and drafts a
+  // ─── Reply Coach — message reply assistant ─────────────────────────────────
+  // Reads the negotiation memory and drafts a
   // reply you can paste into iMessage/WhatsApp/Marketplace chat. Returns
   // 409 when the verdict has no memory yet (run an analysis first).
   draftMessageReply: (data: {
@@ -496,7 +496,7 @@ export const api = {
     body: JSON.stringify(data),
   }),
 
-  // ─── HydraDB — negotiation memory ────────────────────────────────────────
+  // ─── Negotiation memory ────────────────────────────────────────────────
   listMemorySessions: () =>
     request<{ sessions: NegotiationMemoryData[] }>('/api/v1/memory/sessions'),
 
@@ -910,7 +910,7 @@ export interface PhotonReplyData {
   reply: string
   tone: 'polite' | 'firm' | 'walk_away' | 'friendly'
   suggested_price_cents: number | null
-  served_by: 'gmi_cloud' | 'anthropic' | 'openai'
+  served_by: 'gmi_cloud' | 'anthropic' | 'openai' | 'nia'
   grounded_in: {
     fair_low_cents: number | null
     fair_high_cents: number | null

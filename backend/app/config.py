@@ -12,12 +12,21 @@ class Settings(BaseSettings):
     # need structured extraction from a specific URL the user is viewing.
     firecrawl_api_key: str = ""
 
-    # ─── Faivri partner integrations ─────────────────────────────────────
-    # GMI Cloud's GPU fleet is the preferred inference path for fast +
-    # strong tasks. Empty key keeps every call on Anthropic / OpenAI.
+    # ─── Hackathon sponsor integrations (Nozomio AI Nexus) ──────────────
+    # Nia: agentic search for pricing context (mandatory for all tracks).
+    nia_api_key: str = ""
+    nia_api_url: str = "https://apigcp.trynia.ai/v2"
+    # Hyperspell: durable negotiation memory across sessions (Company Brain track).
+    hyperspell_api_key: str = ""
+    hyperspell_api_url: str = "https://api.hyperspell.com"
+    # Tensorlake: background price monitoring sandbox (Always-On track).
+    tensorlake_api_key: str = ""
+    tensorlake_api_url: str = "https://api.tensorlake.ai"
+
+    # ─── LLM inference ─────────────────────────────────────────────────
+    # The legacy GPU adapter (now wraps Anthropic/OpenAI directly).
     gmi_cloud_api_key: str = ""
-    # HydraDB has no separate key — it's a memory layer on top of the
-    # primary Postgres instance — but expose a feature flag for telemetry.
+    # Negotiation memory feature flag (backed by Postgres).
     hydradb_enabled: bool = True
 
     upstash_redis_url: str = ""

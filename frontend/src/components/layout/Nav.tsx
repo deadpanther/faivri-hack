@@ -2,12 +2,14 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { BadgeDollarSign, BarChart3, BookOpen, Car, Search, Shield } from 'lucide-react'
-import { Show, SignInButton, SignUpButton, UserButton } from '@clerk/nextjs'
+import { BadgeDollarSign, BarChart3, BookOpen, Car, LogOut, Search, Shield, User } from 'lucide-react'
 import { motion } from 'framer-motion'
+import { useState } from 'react'
 
 import BrandMark from '@/components/ui/BrandMark'
 import LanguageDropdown from '@/components/layout/LanguageDropdown'
+import { useAuth } from '@/components/auth/InsForgeAuthProvider'
+import { AuthModal } from '@/components/auth/AuthModal'
 
 // Docs intentionally opens in a new tab — keeps people anchored in the app
 // while they reference the SDK guide instead of losing their analyze flow.
@@ -36,6 +38,9 @@ const signedOutLinks = [
 
 export function Nav() {
   const pathname = usePathname()
+  const { user, signOut } = useAuth()
+  const [showAuth, setShowAuth] = useState<'sign-in' | 'sign-up' | null>(null)
+  const isSignedIn = !!user
 
   function isActive(href: string): boolean {
     if (href.startsWith('#')) return pathname === '/'
@@ -45,9 +50,8 @@ export function Nav() {
 
   return (
     <>
-      {/* Top navigation bar — 12/20px spacing in browser; in installed PWA
-          mode on notched devices we max() against safe-area-inset-top so the
-          pill clears the status bar. */}
+      {showAuth && <AuthModal mode={showAuth} onClose={() => setShowAuth(null)} />}
+
       <nav data-top-nav className="fixed inset-x-0 top-0 z-40 pt-[max(8px,env(safe-area-inset-top))] md:pt-[max(20px,env(safe-area-inset-top))]">
         <div className="mx-auto w-[calc(100%-1rem)] max-w-[1400px] sm:w-[calc(100%-2rem)] md:w-[calc(100%-3rem)]">
           <div className="flex h-[58px] items-center justify-between rounded-full border-b border-[rgba(55,53,47,0.09)] bg-white/90 px-3 shadow-[0_1px_3px_rgba(0,0,0,0.04)] backdrop-blur-sm sm:h-[64px] sm:px-4 md:h-[78px] md:px-8">
@@ -70,8 +74,8 @@ export function Nav() {
 
             {/* Desktop links */}
             <div className="hidden items-center gap-8 lg:flex">
-              <Show when="signed-in">
-                {signedInDesktopLinks.map((link) => {
+              {isSignedIn ? (
+                signedInDesktopLinks.map((link) => {
                   const active = !link.external && isActive(link.href)
                   const className = `relative inline-flex items-center gap-2 text-[14px] font-medium transition-colors ${
                     active
@@ -104,11 +108,9 @@ export function Nav() {
                       )}
                     </Link>
                   )
-                })}
-              </Show>
-
-              <Show when="signed-out">
-                {signedOutLinks.map((link) => {
+                })
+              ) : (
+                signedOutLinks.map((link) => {
                   const active = !link.external && isActive(link.href)
                   const className = `text-[14px] font-medium transition-colors ${
                     active
@@ -133,37 +135,52 @@ export function Nav() {
                       {link.label}
                     </Link>
                   )
-                })}
-              </Show>
+                })
+              )}
             </div>
 
             {/* Right side auth controls */}
             <div className="flex items-center gap-2 md:gap-3">
               <LanguageDropdown />
-              <Show when="signed-out">
-                <SignInButton>
-                  <button className="hidden rounded-full px-4 py-2 text-[13px] font-semibold text-[#37352F] transition-colors hover:bg-[#F1F1EF] sm:inline-flex">
+              {!isSignedIn ? (
+                <>
+                  <button
+                    onClick={() => setShowAuth('sign-in')}
+                    className="hidden rounded-full px-4 py-2 text-[13px] font-semibold text-[#37352F] transition-colors hover:bg-[#F1F1EF] sm:inline-flex"
+                  >
                     Sign In
                   </button>
-                </SignInButton>
-                <SignUpButton>
-                  <button className="rounded-full bg-black px-4 py-2 text-[13px] font-semibold text-white transition-colors hover:bg-[#333] md:px-5 md:py-2.5 md:text-[14px]">
+                  <button
+                    onClick={() => setShowAuth('sign-up')}
+                    className="rounded-full bg-black px-4 py-2 text-[13px] font-semibold text-white transition-colors hover:bg-[#333] md:px-5 md:py-2.5 md:text-[14px]"
+                  >
                     Get Started
                   </button>
-                </SignUpButton>
-              </Show>
-              <Show when="signed-in">
-                <div className="hidden rounded-full border border-[rgba(55,53,47,0.09)] bg-[#F7F7F5] px-2 py-1.5 md:block">
-                  <UserButton />
+                </>
+              ) : (
+                <div className="flex items-center gap-2">
+                  <div className="hidden items-center gap-2 rounded-full border border-[rgba(55,53,47,0.09)] bg-[#F7F7F5] px-3 py-1.5 md:flex">
+                    <User className="h-4 w-4 text-[#6B6B6B]" />
+                    <span className="text-[13px] font-medium text-[#37352F] max-w-[120px] truncate">
+                      {user.email}
+                    </span>
+                  </div>
+                  <button
+                    onClick={signOut}
+                    className="rounded-full p-2 text-[#6B6B6B] hover:bg-[#F1F1EF] transition-colors"
+                    title="Sign out"
+                  >
+                    <LogOut className="h-4 w-4" />
+                  </button>
                 </div>
-              </Show>
+              )}
             </div>
           </div>
         </div>
       </nav>
 
       {/* Mobile bottom nav — signed-in only */}
-      <Show when="signed-in">
+      {isSignedIn && (
         <div data-bottom-nav className="safe-area-pb fixed inset-x-0 bottom-0 z-50 border-t border-[rgba(55,53,47,0.09)] bg-white/95 backdrop-blur-sm md:hidden">
           <div className="mx-auto flex w-full max-w-[640px] items-center justify-around gap-0.5 px-1.5 py-1.5 sm:px-3 sm:py-2">
             {signedInMobileLinks.map((link) => {
@@ -185,13 +202,16 @@ export function Nav() {
                 </Link>
               )
             })}
-            <div className="flex min-w-0 flex-1 flex-col items-center gap-0.5 rounded-xl border border-[rgba(55,53,47,0.09)] bg-[#F7F7F5] px-1 py-1.5 text-[#6B6B6B]">
-              <UserButton />
-              <span className="text-[10px] font-semibold leading-none">Account</span>
-            </div>
+            <button
+              onClick={signOut}
+              className="flex min-w-0 flex-1 flex-col items-center gap-0.5 rounded-xl border border-[rgba(55,53,47,0.09)] bg-[#F7F7F5] px-1 py-1.5 text-[#6B6B6B]"
+            >
+              <LogOut className="h-[18px] w-[18px] sm:h-5 sm:w-5" />
+              <span className="text-[10px] font-semibold leading-none">Sign out</span>
+            </button>
           </div>
         </div>
-      </Show>
+      )}
     </>
   )
 }

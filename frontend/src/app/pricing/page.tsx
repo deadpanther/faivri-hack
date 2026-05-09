@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { useUser } from '@clerk/nextjs'
+import { useAuth } from '@/components/auth/InsForgeAuthProvider'
 import { AnimatePresence, motion } from 'framer-motion'
 import {
   ArrowRight,
@@ -151,7 +151,9 @@ export default function PricingPage() {
   const [confirmDowngrade, setConfirmDowngrade] = useState<StripePriceKey | null>(null)
   const [proration, setProration] = useState<ProrationModalState | null>(null)
   const router = useRouter()
-  const { isSignedIn, isLoaded: clerkLoaded } = useUser()
+  const { user, loading: authLoading } = useAuth()
+  const isSignedIn = !!user
+  const clerkLoaded = !authLoading
 
   // Hydrate the user's current subscription so we can badge their plan
   // and switch CTAs to upgrade/downgrade/cancel/resume. Anonymous users

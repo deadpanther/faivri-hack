@@ -21,7 +21,8 @@ import {
   Database,
   Sparkles,
 } from 'lucide-react'
-import { SignUpButton } from '@clerk/nextjs'
+import { useState } from 'react'
+import { AuthModal } from '@/components/auth/AuthModal'
 
 import {
   scrollReveal,
@@ -51,25 +52,28 @@ const DOMAINS = [
   { icon: ShoppingBag, label: 'Retail & Marketplace', desc: 'Amazon, Costco, eBay sold comps — plus the Chrome extension', color: 'var(--red)' },
 ]
 
-/* ── How it works steps ── */
+/* -- How it works steps -- */
 const STEPS = [
   { icon: Upload, num: '01', title: 'Send us the quote', desc: 'Type it, snap a photo of the invoice, or open a listing with the extension.' },
-  { icon: Search, num: '02', title: 'GMI Cloud crunches the market', desc: 'Real-time GPU inference cross-references live retail, service, and secondhand pricing.' },
+  { icon: Search, num: '02', title: 'Nia searches the market', desc: 'Nia\'s agentic search indexes live pricing data, consumer reports, and fair-market guides in real time.' },
   { icon: BarChart3, num: '03', title: 'See the fair range', desc: 'A range, not a number \u2014 every comp cites its source.' },
-  { icon: MessageSquare, num: '04', title: 'Photon drafts the reply', desc: 'Paste the seller\u2019s message, get a polite, data-backed counter you can send verbatim.' },
-  { icon: TrendingDown, num: '05', title: 'HydraDB remembers everything', desc: 'Walk-away ceilings, price fluctuations, seller tone \u2014 all stored so the next round picks up where you left off.' },
+  { icon: MessageSquare, num: '04', title: 'AI drafts the reply', desc: 'Paste the seller\'s message, get a polite, data-backed counter you can send verbatim.' },
+  { icon: TrendingDown, num: '05', title: 'Hyperspell remembers everything', desc: 'Walk-away ceilings, price fluctuations, seller tone \u2014 all stored so the next round picks up where you left off.' },
 ]
 
-/* ── Partner stack — credited only when the integration ships in this build ── */
+/* -- Sponsor stack -- credited only when the integration ships in this build */
 const PARTNERS = [
-  { icon: Cpu, label: 'GMI Cloud', desc: 'Real-time GPU inference' },
-  { icon: Database, label: 'HydraDB', desc: 'Negotiation memory' },
-  { icon: MessageSquare, label: 'Photon', desc: 'Messaging assistant' },
+  { icon: Cpu, label: 'Nia', desc: 'Agentic search & context' },
+  { icon: Database, label: 'Hyperspell', desc: 'Negotiation memory' },
+  { icon: Sparkles, label: 'Tensorlake', desc: 'Background price monitors' },
 ]
 
 export default function PreLoginLanding() {
+  const [showAuth, setShowAuth] = useState<'sign-in' | 'sign-up' | null>(null)
+
   return (
     <div className="pb-16">
+      {showAuth && <AuthModal mode={showAuth} onClose={() => setShowAuth(null)} />}
       {/* ═══════════════════ HERO ═══════════════════ */}
       <section className="ui-section relative overflow-hidden" style={{ paddingTop: 'clamp(24px, 8vw, 100px)', paddingBottom: 'clamp(32px, 8vw, 80px)' }}>
         {/* Aurora backdrop — soft, animated, motion-respecting */}
@@ -100,7 +104,7 @@ export default function PreLoginLanding() {
         <div className="ui-container flex flex-col items-center text-center">
           <motion.div {...reveal(0)} className="ui-kicker">
             <Sparkles className="h-3.5 w-3.5" />
-            Built for Build Matcha &amp; Code · AI-Powered Negotiation Agent
+            Nozomio AI Nexus Hackathon · AI-Powered Negotiation Agent
           </motion.div>
 
           <h1 className="ui-title-display mt-6 px-2" style={{ fontSize: 'clamp(2rem, 8vw, 5rem)' }}>
@@ -129,12 +133,13 @@ export default function PreLoginLanding() {
                 }}
                 transition={{ duration: 2.6, repeat: Infinity, ease: 'easeOut', delay: 1.2 }}
               />
-              <SignUpButton>
-                <MagneticButton className="btn-primary inline-flex w-full items-center justify-center gap-2 px-5 py-3 text-[15px] sm:w-auto sm:px-7 sm:py-3.5 sm:text-base relative">
-                  Start Negotiating — Free
-                  <ArrowRight className="h-4 w-4" />
-                </MagneticButton>
-              </SignUpButton>
+              <MagneticButton
+                className="btn-primary inline-flex w-full items-center justify-center gap-2 px-5 py-3 text-[15px] sm:w-auto sm:px-7 sm:py-3.5 sm:text-base relative"
+                onClick={() => setShowAuth('sign-up')}
+              >
+                Start Negotiating — Free
+                <ArrowRight className="h-4 w-4" />
+              </MagneticButton>
             </div>
             <Link href="#how-it-works" className="btn-ghost inline-flex w-full justify-center text-[15px] sm:w-auto sm:text-base">
               See how it works
@@ -160,7 +165,7 @@ export default function PreLoginLanding() {
             </span>
           </motion.div>
 
-          {/* Partner credits — Faivri is built on GMI Cloud + HydraDB + Photon. */}
+          {/* Sponsor credits — Powered by Nia + Hyperspell + Tensorlake for Nozomio AI Nexus. */}
           <motion.div
             {...reveal(1.0)}
             className="mt-8 w-full max-w-3xl"
@@ -292,12 +297,13 @@ export default function PreLoginLanding() {
               Join Faivri to avoid overpaying on everyday services.
             </p>
             <div className="mt-6 sm:mt-8">
-              <SignUpButton>
-                <MagneticButton className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-white px-5 py-3 text-[15px] font-semibold text-[var(--text-1)] hover:bg-[var(--warm-bg-secondary)] transition-colors sm:w-auto sm:px-7 sm:py-3.5 sm:text-base">
-                  Get Started Free
-                  <ArrowRight className="h-4 w-4" />
-                </MagneticButton>
-              </SignUpButton>
+              <MagneticButton
+                className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-white px-5 py-3 text-[15px] font-semibold text-[var(--text-1)] hover:bg-[var(--warm-bg-secondary)] transition-colors sm:w-auto sm:px-7 sm:py-3.5 sm:text-base"
+                onClick={() => setShowAuth('sign-up')}
+              >
+                Get Started Free
+                <ArrowRight className="h-4 w-4" />
+              </MagneticButton>
             </div>
           </motion.div>
         </div>

@@ -20,7 +20,8 @@ import {
   X,
 } from 'lucide-react'
 
-import { SignInButton } from '@clerk/nextjs'
+import { useState } from 'react'
+import { AuthModal } from '@/components/auth/AuthModal'
 
 import { api, ApiError, type QuotaExhaustedDetail } from '@/lib/api'
 import OutOfAnalysesModal from '@/components/ui/OutOfAnalysesModal'
@@ -106,6 +107,7 @@ export default function AnalyzerStudio() {
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const recognitionRef = useRef<SpeechRecognitionLike | null>(null)
   const provider = 'anthropic'
+  const [showAuthModal, setShowAuthModal] = useState<'sign-in' | 'sign-up' | null>(null)
 
   const [query, setQuery] = useState('')
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null)
@@ -464,6 +466,7 @@ export default function AnalyzerStudio() {
 
   return (
     <div className="min-h-[calc(100svh-var(--nav-clearance,66px))]" onDragOver={handleDragOver} onDragLeave={handleDragLeave} onDrop={handleDrop}>
+      {showAuthModal && <AuthModal mode={showAuthModal} onClose={() => setShowAuthModal(null)} />}
       <OutOfAnalysesModal detail={quotaDetail} onClose={() => setQuotaDetail(null)} />
       {/* Drag overlay */}
       <AnimatePresence>
@@ -749,14 +752,13 @@ export default function AnalyzerStudio() {
                         client errors won't magically fix themselves. */}
                     {errorMeta?.status === 401 && (
                       <div className="mt-2 pl-9">
-                        <SignInButton mode="modal" forceRedirectUrl="/">
                           <button
                             type="button"
+                            onClick={() => setShowAuthModal('sign-in')}
                             className="inline-flex items-center gap-1 rounded-md bg-black px-3 py-1 text-[11px] font-semibold text-white hover:bg-[#222] transition-colors"
                           >
                             Sign back in
                           </button>
-                        </SignInButton>
                       </div>
                     )}
                     {(errorMeta?.status === 0 || errorMeta?.status === 429 || errorMeta?.status === 503 || (errorMeta?.status && errorMeta.status >= 500)) && (

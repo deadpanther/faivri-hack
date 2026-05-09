@@ -2,7 +2,9 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Show, SignUpButton } from '@clerk/nextjs'
+import { useState } from 'react'
+import { useAuth } from '@/components/auth/InsForgeAuthProvider'
+import { AuthModal } from '@/components/auth/AuthModal'
 import {
   ArrowRight,
   LifeBuoy,
@@ -58,11 +60,15 @@ function supportMailto(pathname: string | null): string {
 
 export function Footer() {
   const pathname = usePathname()
+  const { user } = useAuth()
+  const [showAuth, setShowAuth] = useState<'sign-in' | 'sign-up' | null>(null)
 
   return (
     <footer data-app-footer="true" className="mt-12 md:mt-24">
       {/* ── CTA banner (signed-out only) ──────────────────────────────── */}
-      <Show when="signed-out">
+      {!user && (
+        <>
+          {showAuth && <AuthModal mode={showAuth} onClose={() => setShowAuth(null)} />}
         <section className="ui-container pb-8">
           <div className="relative overflow-hidden rounded-3xl border border-[var(--border)] bg-[var(--warm-bg-secondary)] p-8 md:p-10">
             <div
@@ -96,12 +102,13 @@ export function Footer() {
                 </p>
               </div>
               <div className="flex flex-col items-stretch gap-3 sm:flex-row sm:items-center">
-                <SignUpButton>
-                  <button className="inline-flex items-center justify-center gap-2 rounded-full bg-black px-5 py-2.5 text-[14px] font-semibold text-white transition-colors hover:bg-[#333]">
-                    Start free
-                    <ArrowRight className="h-4 w-4" />
-                  </button>
-                </SignUpButton>
+                <button
+                  onClick={() => setShowAuth('sign-up')}
+                  className="inline-flex items-center justify-center gap-2 rounded-full bg-black px-5 py-2.5 text-[14px] font-semibold text-white transition-colors hover:bg-[#333]"
+                >
+                  Start free
+                  <ArrowRight className="h-4 w-4" />
+                </button>
                 <a
                   href={CHROME_EXTENSION_URL}
                   target="_blank"
@@ -115,7 +122,8 @@ export function Footer() {
             </div>
           </div>
         </section>
-      </Show>
+        </>
+      )}
 
       {/* ── Main footer grid ─────────────────────────────────────────── */}
       <div className="border-t border-[var(--border)] bg-[var(--warm-bg)]">

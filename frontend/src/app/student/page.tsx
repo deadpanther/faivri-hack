@@ -3,7 +3,8 @@
 import { useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
-import { Show, SignInButton, useUser } from '@clerk/nextjs'
+import { useAuth } from '@/components/auth/InsForgeAuthProvider'
+import { AuthModal } from '@/components/auth/AuthModal'
 import {
   AlertCircle,
   ArrowRight,
@@ -40,7 +41,7 @@ function StudentForm() {
   // surface it verbatim on the not-eligible card so the user knows
   // exactly why their account didn't qualify.
   const [reason, setReason] = useState<string | null>(null)
-  const { user } = useUser()
+  const { user } = useAuth()
 
   // Single check: trust whatever the user signed in with. If their
   // Clerk-verified primary email is .edu, we flip on Scholar in-place.
@@ -208,8 +209,10 @@ const PERKS = [
 ]
 
 export default function StudentPage() {
+  const [showAuthModal, setShowAuthModal] = useState<'sign-in' | 'sign-up' | null>(null)
   return (
     <section className="ui-section pb-24">
+      {showAuthModal && <AuthModal mode={showAuthModal} onClose={() => setShowAuthModal(null)} />}
       <div className="ui-container max-w-3xl">
         <header className="relative overflow-hidden rounded-[28px] border border-[var(--border)] bg-[var(--warm-bg-secondary)] p-8 md:p-12">
           <AuroraBackdrop tone="mint" />
@@ -227,10 +230,9 @@ export default function StudentPage() {
         </header>
 
         <div className="mt-8">
-          <Show when="signed-in">
+          {user ? (
             <StudentForm />
-          </Show>
-          <Show when="signed-out">
+          ) : (
             <div className="rounded-3xl border border-[var(--border)] bg-[var(--warm-bg)] p-8 md:p-10 text-center">
               <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-[var(--warm-bg-tertiary)] text-[var(--text-1)]">
                 <GraduationCap className="h-6 w-6" />
@@ -242,14 +244,15 @@ export default function StudentPage() {
                 Scholar pricing is tied to your Faivri account, so we need to know who&apos;s
                 being verified.
               </p>
-              <SignInButton mode="modal" forceRedirectUrl="/student">
-                <button className="mt-6 inline-flex items-center justify-center gap-2 rounded-full bg-[var(--text-1)] px-6 py-2.5 text-sm font-semibold text-white transition-transform hover:scale-[1.02]">
-                  Sign in to continue
-                  <ArrowRight className="h-4 w-4" />
-                </button>
-              </SignInButton>
+              <button
+                onClick={() => setShowAuthModal('sign-in')}
+                className="mt-6 inline-flex items-center justify-center gap-2 rounded-full bg-[var(--text-1)] px-6 py-2.5 text-sm font-semibold text-white transition-transform hover:scale-[1.02]"
+              >
+                Sign in to continue
+                <ArrowRight className="h-4 w-4" />
+              </button>
             </div>
-          </Show>
+          )}
         </div>
 
         <div className="mt-10 grid gap-3 sm:grid-cols-3">

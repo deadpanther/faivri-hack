@@ -103,14 +103,14 @@ export default function MessagesPage() {
         <motion.div {...reveal(0)}>
           <div className="ui-kicker">
             <Sparkles className="h-3.5 w-3.5" />
-            Photon · Messaging Assistant
+            Faivri · Messaging Assistant
           </div>
           <h1 className="ui-title-section mt-3">
             Draft a polite, data-backed reply.
           </h1>
           <p className="ui-lead mt-2 max-w-2xl">
-            Paste what the seller said. Photon reads your verdict&apos;s
-            negotiation memory in HydraDB &mdash; the fair-price range, your
+            Paste what the seller said. Faivri reads your verdict&apos;s
+            negotiation memory &mdash; the fair-price range, your
             walk-away ceiling, prior counter-offers &mdash; and writes the next
             message you should send.
           </p>
@@ -201,7 +201,7 @@ export default function MessagesPage() {
           <div className="flex flex-col items-stretch gap-3 sm:flex-row sm:items-center sm:justify-between">
             <p className="text-[12px] text-[var(--text-3)]">
               Replies are grounded in your verdict&apos;s fair-price range and
-              walk-away ceiling. Photon never invents numbers.
+              walk-away ceiling. Faivri never invents numbers.
             </p>
             <button
               type="submit"
@@ -241,7 +241,7 @@ export default function MessagesPage() {
             <div className="flex items-center justify-between gap-2">
               <div className="inline-flex items-center gap-2 rounded-full border border-[var(--border)] bg-[var(--warm-bg-secondary)] px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.14em] text-[var(--text-2)]">
                 <MessageSquare className="h-3 w-3" />
-                Photon draft · {reply.tone}
+                AI draft · {reply.tone}
               </div>
               <button
                 type="button"
@@ -280,7 +280,7 @@ export default function MessagesPage() {
                   Served by
                 </p>
                 <p className="mt-1 font-mono text-[13px] uppercase tracking-wide text-[var(--text-1)]">
-                  {reply.served_by === 'gmi_cloud' ? 'GMI Cloud GPU fleet' : reply.served_by}
+                  {reply.served_by === 'gmi_cloud' ? 'Nia context + GPU' : reply.served_by}
                 </p>
               </div>
             </div>
@@ -303,7 +303,7 @@ export default function MessagesPage() {
             <div className="mt-6 flex flex-wrap items-center gap-2 text-[12px] text-[var(--text-3)]">
               <Send className="h-3.5 w-3.5" />
               Paste this into iMessage, WhatsApp, or Marketplace chat &mdash;
-              HydraDB will remember the seller&apos;s next reply automatically.
+              Faivri will remember the seller&apos;s next reply automatically.
             </div>
           </motion.section>
         )}
