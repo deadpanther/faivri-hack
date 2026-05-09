@@ -1,8 +1,10 @@
 /**
- * InsForge SDK client — thin wrapper around @insforge/sdk.
+ * InsForge SDK client — singleton configured from env vars.
  *
- * Exports a singleton `insforge` client configured from env vars.
- * Also re-exports `InsForgeClient` and `createClient` for direct use.
+ * Usage:
+ *   import { insforge } from '@/lib/insforge'
+ *   await insforge.auth.signInWithPassword({ email, password })
+ *   const token = insforge.getAccessToken()
  */
 
 import { createClient, type InsForgeClient } from '@insforge/sdk'
