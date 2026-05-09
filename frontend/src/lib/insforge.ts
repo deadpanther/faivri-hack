@@ -1,16 +1,16 @@
 /**
- * InsForge client — auth, database, storage for the hackathon.
- * Replaces Clerk as the auth + backend provider.
+ * InsForge SDK client — thin wrapper around @insforge/sdk.
  *
- * Env vars (set in .env.local and on Vercel):
- *   NEXT_PUBLIC_INSFORGE_URL      — InsForge project URL
- *   NEXT_PUBLIC_INSFORGE_ANON_KEY  — InsForge anon/public key
+ * Exports a singleton `insforge` client configured from env vars.
+ * Also re-exports `InsForgeClient` and `createClient` for direct use.
  */
-import { createClient, type Session, type User } from '@insforge/sdk'
 
-export const insforge = createClient({
+import { createClient, type InsForgeClient } from '@insforge/sdk'
+
+export type { InsForgeClient }
+export { createClient }
+
+export const insforge: InsForgeClient = createClient({
   baseUrl: process.env.NEXT_PUBLIC_INSFORGE_URL ?? 'https://insforge.dev',
   anonKey: process.env.NEXT_PUBLIC_INSFORGE_ANON_KEY ?? '',
 })
-
-export type { Session, User }

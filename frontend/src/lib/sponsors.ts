@@ -11,6 +11,20 @@ import { insforge } from '@/lib/insforge'
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
 
+async function getAuthHeaders(): Promise<Record<string, string>> {
+  const headers: Record<string, string> = { 'Content-Type': 'application/json' }
+  try {
+    const { data } = await insforge.auth.getCurrentUser()
+    // The SDK manages tokens internally; read the Authorization header
+    const httpHeaders = insforge.getHttpClient().getHeaders()
+    const auth = httpHeaders['Authorization'] || httpHeaders['authorization']
+    if (auth) headers['Authorization'] = auth
+  } catch {
+    // Not signed in — proceed without auth
+  }
+  return headers
+}
+
 // ── Nia ──────────────────────────────────────────────────────────────
 
 export interface NiaSearchResult {
@@ -21,10 +35,7 @@ export interface NiaSearchResult {
 
 export async function niaSearch(query: string): Promise<NiaSearchResult[]> {
   try {
-    const { data: { session } } = await insforge.auth.getSession()
-    const headers: Record<string, string> = { 'Content-Type': 'application/json' }
-    if (session?.access_token) headers['Authorization'] = `Bearer ${session.access_token}`
-
+    const headers = await getAuthHeaders()
     const res = await fetch(`${API_URL}/api/v1/nia/search`, {
       method: 'POST',
       headers,
@@ -63,10 +74,7 @@ export interface HyperspellMemory {
 
 export async function hyperspellStore(content: string, metadata?: Record<string, string>): Promise<string | null> {
   try {
-    const { data: { session } } = await insforge.auth.getSession()
-    const headers: Record<string, string> = { 'Content-Type': 'application/json' }
-    if (session?.access_token) headers['Authorization'] = `Bearer ${session.access_token}`
-
+    const headers = await getAuthHeaders()
     const res = await fetch(`${API_URL}/api/v1/hyperspell/memories`, {
       method: 'POST',
       headers,
@@ -82,10 +90,7 @@ export async function hyperspellStore(content: string, metadata?: Record<string,
 
 export async function hyperspellQuery(query: string): Promise<HyperspellMemory[]> {
   try {
-    const { data: { session } } = await insforge.auth.getSession()
-    const headers: Record<string, string> = { 'Content-Type': 'application/json' }
-    if (session?.access_token) headers['Authorization'] = `Bearer ${session.access_token}`
-
+    const headers = await getAuthHeaders()
     const res = await fetch(`${API_URL}/api/v1/hyperspell/query`, {
       method: 'POST',
       headers,
@@ -127,10 +132,7 @@ export interface PriceMonitor {
 
 export async function createMonitor(query: string, intervalMinutes: number = 60): Promise<PriceMonitor | null> {
   try {
-    const { data: { session } } = await insforge.auth.getSession()
-    const headers: Record<string, string> = { 'Content-Type': 'application/json' }
-    if (session?.access_token) headers['Authorization'] = `Bearer ${session.access_token}`
-
+    const headers = await getAuthHeaders()
     const res = await fetch(`${API_URL}/api/v1/tensorlake/monitors`, {
       method: 'POST',
       headers,
@@ -145,10 +147,7 @@ export async function createMonitor(query: string, intervalMinutes: number = 60)
 
 export async function listMonitors(): Promise<PriceMonitor[]> {
   try {
-    const { data: { session } } = await insforge.auth.getSession()
-    const headers: Record<string, string> = { 'Content-Type': 'application/json' }
-    if (session?.access_token) headers['Authorization'] = `Bearer ${session.access_token}`
-
+    const headers = await getAuthHeaders()
     const res = await fetch(`${API_URL}/api/v1/tensorlake/monitors`, { headers })
     if (!res.ok) return getSimulatedMonitors()
     const data = await res.json()

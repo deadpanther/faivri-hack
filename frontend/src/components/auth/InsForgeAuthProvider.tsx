@@ -1,90 +1,126 @@
 'use client'
 
-import { createContext, useContext, useEffect, useState, useCallback, type ReactNode } from 'react'
-import { insforge, type Session, type User } from '@/lib/insforge'
-import { setAuthTokenGetter } from '@/lib/api'
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+  type ReactNode,
+} from 'react'
+import { insforge } from '@/lib/insforge'
 
-interface AuthState {
+interface User {
+  id: string
+  email: string
+  name?: string
+}
+
+interface AuthContextValue {
   user: User | null
-  session: Session | null
   loading: boolean
-  signIn: (email: string, password: string) => Promise<void>
-  signUp: (email: string, password: string) => Promise<void>
-  signInWithGoogle: () => Promise<void>
+  signIn: (email: string, password: string) => Promise<{ error: string | null }>
+  signUp: (email: string, password: string, name?: string) => Promise<{ error: string | null }>
   signOut: () => Promise<void>
 }
 
-const AuthContext = createContext<AuthState>({
+const AuthContext = createContext<AuthContextValue>({
   user: null,
-  session: null,
   loading: true,
-  signIn: async () => {},
-  signUp: async () => {},
-  signInWithGoogle: async () => {},
+  signIn: async () => ({ error: 'Not initialized' }),
+  signUp: async () => ({ error: 'Not initialized' }),
   signOut: async () => {},
 })
 
-export function useAuth() {
-  return useContext(AuthContext)
-}
-
 export function InsForgeAuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
-  const [session, setSession] = useState<Session | null>(null)
   const [loading, setLoading] = useState(true)
 
+  // Restore session on mount
   useEffect(() => {
-    // Get initial session
-    insforge.auth.getSession().then(({ data }) => {
-      setSession(data.session)
-      setUser(data.session?.user ?? null)
-      setLoading(false)
-    }).catch(() => {
-      setLoading(false)
-    })
-
-    // Listen for auth state changes
-    const { data: { subscription } } = insforge.auth.onAuthStateChange((_event, sess) => {
-      setSession(sess)
-      setUser(sess?.user ?? null)
-      setLoading(false)
-    })
-
-    return () => subscription.unsubscribe()
+    let cancelled = false
+    ;(async () => {
+      try {
+        const { data, error } = await insforge.auth.getCurrentUser()
+        if (!cancelled && !error && data?.user) {
+          setUser({
+            id: data.user.id,
+            email: data.user.email ?? '',
+            name: (data.user as any).name ?? undefined,
+          })
+          // Sync access token for API calls
+          const token = insforge.getHttpClient().getHeaders()['Authorization']?.replace('Bearer ', '') ?? null
+          if (token) {
+            insforge.setAccessToken(token)
+          }
+        }
+      } catch {
+        // Not signed in — that's fine
+      } finally {
+        if (!cancelled) setLoading(false)
+      }
+    })()
+    return () => { cancelled = true }
   }, [])
-
-  // Bridge auth tokens to the API client
-  useEffect(() => {
-    if (!session) {
-      setAuthTokenGetter(null)
-      return
-    }
-    setAuthTokenGetter(async () => session.access_token ?? null)
-    return () => setAuthTokenGetter(null)
-  }, [session])
 
   const signIn = useCallback(async (email: string, password: string) => {
-    const { error } = await insforge.auth.signInWithPassword({ email, password })
-    if (error) throw error
+    try {
+      const { data, error } = await insforge.auth.signInWithPassword({ email, password })
+      if (error) return { error: error.message }
+      if (data?.user) {
+        setUser({
+          id: data.user.id,
+          email: data.user.email ?? email,
+          name: (data.user as any).name ?? undefined,
+        })
+        // Sync token for backend API calls
+        const token = insforge.getHttpClient().getHeaders()['Authorization']?.replace('Bearer ', '') ?? null
+        if (token) {
+          insforge.setAccessToken(token)
+        }
+      }
+      return { error: null }
+    } catch (err: any) {
+      return { error: err?.message ?? 'Sign in failed' }
+    }
   }, [])
 
-  const signUp = useCallback(async (email: string, password: string) => {
-    const { error } = await insforge.auth.signUp({ email, password })
-    if (error) throw error
-  }, [])
-
-  const signInWithGoogle = useCallback(async () => {
-    const { error } = await insforge.auth.signInWithOAuth({ provider: 'google' })
-    if (error) throw error
+  const signUp = useCallback(async (email: string, password: string, name?: string) => {
+    try {
+      const { data, error } = await insforge.auth.signUp({ email, password, name } as any)
+      if (error) return { error: error.message }
+      if (data?.user) {
+        setUser({
+          id: data.user.id,
+          email: data.user.email ?? email,
+          name: name ?? (data.user as any).name ?? undefined,
+        })
+        const token = insforge.getHttpClient().getHeaders()['Authorization']?.replace('Bearer ', '') ?? null
+        if (token) {
+          insforge.setAccessToken(token)
+        }
+      }
+      return { error: null }
+    } catch (err: any) {
+      return { error: err?.message ?? 'Sign up failed' }
+    }
   }, [])
 
   const signOut = useCallback(async () => {
     await insforge.auth.signOut()
+    setUser(null)
+    insforge.setAccessToken(null)
   }, [])
 
-  return (
-    <AuthContext.Provider value={{ user, session, loading, signIn, signUp, signInWithGoogle, signOut }}>
-      {children}
-    </AuthContext.Provider>
+  const value = useMemo(
+    () => ({ user, loading, signIn, signUp, signOut }),
+    [user, loading, signIn, signUp, signOut],
   )
+
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
+}
+
+export function useAuth() {
+  return useContext(AuthContext)
 }
