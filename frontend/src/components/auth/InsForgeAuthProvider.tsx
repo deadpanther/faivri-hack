@@ -10,6 +10,7 @@ import {
   type ReactNode,
 } from 'react'
 import { insforge } from '@/lib/insforge'
+import { setPersistedToken } from '@/lib/api'
 
 interface User {
   id: string
@@ -56,6 +57,9 @@ export function InsForgeAuthProvider({ children }: { children: ReactNode }) {
         const { data, error } = await insforge.auth.getCurrentUser()
         if (!cancelled && !error && data?.user) {
           setUser(extractUser(data.user))
+          // Also persist the token if available after session restore
+          const token = insforge.getAccessToken()
+          if (token) setPersistedToken(token)
         }
       } catch {
         // Not signed in — that's fine
@@ -70,6 +74,10 @@ export function InsForgeAuthProvider({ children }: { children: ReactNode }) {
     try {
       const { data, error } = await insforge.auth.signInWithPassword({ email, password })
       if (error) return { error: error.nextActions ?? error.message ?? 'Sign in failed' }
+      // Persist the access token so the API client always has it
+      if (data?.accessToken) {
+        setPersistedToken(data.accessToken)
+      }
       if (data?.user) {
         setUser(extractUser(data.user))
       } else if (data?.accessToken) {
@@ -114,6 +122,7 @@ export function InsForgeAuthProvider({ children }: { children: ReactNode }) {
 
   const signOut = useCallback(async () => {
     await insforge.auth.signOut()
+    setPersistedToken(null)
     setUser(null)
   }, [])
 

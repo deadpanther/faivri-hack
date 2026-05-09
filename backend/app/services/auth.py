@@ -257,6 +257,7 @@ async def _verify_insforge_jwt(token: str) -> Optional[str]:
                     "Authorization": f"Bearer {token}",
                 },
             )
+            logger.info("InsForge verify response: status=%d body=%s", resp.status_code, resp.text[:200])
             if resp.status_code != 200:
                 return None
             data = resp.json()
@@ -364,9 +365,12 @@ async def get_optional_user_id(
         )
 
     # Try InsForge JWT first (hackathon auth)
+    logger.info("Attempting InsForge JWT verification, token length=%d", len(token))
     insforge_user_id = await _verify_insforge_jwt(token)
     if insforge_user_id:
+        logger.info("InsForge JWT verified: user_id=%s", insforge_user_id)
         return insforge_user_id
+    logger.warning("InsForge JWT verification failed, falling back to Clerk")
 
     # Fall back to Clerk JWT verification
     clerk_sub, clerk_sid = await _verify_clerk_jwt(token)

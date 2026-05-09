@@ -13,14 +13,49 @@ export function setAuthTokenGetter(
   authTokenGetter = getter
 }
 
-async function authHeaders(): Promise<Record<string, string>> {
-  if (!authTokenGetter) return {}
-  try {
-    const token = await authTokenGetter()
-    return token ? { Authorization: `Bearer ${token}` } : {}
-  } catch {
-    return {}
+// Hackathon backup: persist token in sessionStorage so we never lose it
+// across client-side navigations or HMR refreshes.
+const SESSION_TOKEN_KEY = 'faivri:insforge-access-token'
+
+export function setPersistedToken(token: string | null): void {
+  if (typeof window === 'undefined') return
+  if (token) {
+    sessionStorage.setItem(SESSION_TOKEN_KEY, token)
+  } else {
+    sessionStorage.removeItem(SESSION_TOKEN_KEY)
   }
+}
+
+function getPersistedToken(): string | null {
+  if (typeof window === 'undefined') return null
+  return sessionStorage.getItem(SESSION_TOKEN_KEY)
+}
+
+async function authHeaders(): Promise<Record<string, string>> {
+  // 1. Try the registered getter (primary path)
+  if (authTokenGetter) {
+    try {
+      const token = await authTokenGetter()
+      if (token) {
+        setPersistedToken(token)
+        return { Authorization: `Bearer ${token}` }
+      }
+    } catch (err) {
+      console.warn('[api] authTokenGetter error:', err)
+    }
+  } else {
+    console.warn('[api] authTokenGetter is NOT registered')
+  }
+
+  // 2. Fallback: use persisted token from sessionStorage
+  const persisted = getPersistedToken()
+  if (persisted) {
+    console.log('[api] using persisted token fallback')
+    return { Authorization: `Bearer ${persisted}` }
+  }
+
+  console.warn('[api] no auth token available')
+  return {}
 }
 
 // ApiError carries the HTTP status alongside a user-friendly message so UI
