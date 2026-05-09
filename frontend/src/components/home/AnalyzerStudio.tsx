@@ -20,8 +20,7 @@ import {
   X,
 } from 'lucide-react'
 
-import { useState } from 'react'
-import { AuthModal } from '@/components/auth/AuthModal'
+import { AuthModal } from '@/components/auth/AuthModal';
 
 import { api, ApiError, type QuotaExhaustedDetail } from '@/lib/api'
 import OutOfAnalysesModal from '@/components/ui/OutOfAnalysesModal'

@@ -1,11 +1,17 @@
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 
-// No Clerk middleware — InsForge handles auth via client-side SDK
-export function middleware(_request: NextRequest) {
+/**
+ * Proxy (formerly middleware) — passes all requests through.
+ * Clerk middleware was removed; InsForge auth is client-side only.
+ */
+export default function proxy(request: NextRequest) {
   return NextResponse.next()
 }
 
 export const config = {
-  matcher: [],
+  matcher: [
+    '/((?!_next|[^?]*\\.(?:html?|css|js(?!on)|jpe?g|webp|png|gif|svg|ttf|woff2?|ico|csv|docx?|xlsx?|zip|webmanifest)).*)',
+    '/(api|trpc)(.*)',
+  ],
 }
