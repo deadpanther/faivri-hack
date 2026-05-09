@@ -236,6 +236,46 @@ async def _resolve_profile_id(db: AsyncSession, clerk_sub: str) -> Optional[str]
         return None
 
 
+# ─── InsForge JWT verification (hackathon) ──────────────────────────────────
+
+async def _verify_insforge_jwt(token: str) -> Optional[str]:
+    """Verify an InsForge-issued JWT and return the profile UUID.
+
+    InsForge signs JWTs with HS256 using the project's anon key as secret.
+    We decode the JWT, extract the user ID (sub claim), and resolve/create
+    the profile row just like the Clerk path.
+    """
+    try:
+        # InsForge JWTs are HS256 signed with the anon key
+        anon_key = settings.insforge_anon_key
+        if not anon_key:
+            return None
+
+        payload = jwt.decode(
+            token,
+            anon_key,
+            algorithms=["HS256"],
+            options={"verify_exp": True, "verify_aud": False},
+            leeway=JWT_LEEWAY_SECONDS,
+        )
+
+        sub = payload.get("sub")
+        if not sub or not isinstance(sub, str):
+            return None
+
+        # sub is the InsForge user UUID — resolve to internal profile
+        # For hackathon, use the InsForge user ID directly as clerk_user_id
+        from app.services.database import async_session
+        async with async_session() as db:
+            profile_id = await _resolve_profile_id(db, f"insforge_{sub}")
+            return profile_id
+    except jwt.PyJWTError:
+        return None
+    except Exception:
+        logger.exception("Unexpected error verifying InsForge JWT")
+        return None
+
+
 # ─── FastAPI dependencies ────────────────────────────────────────────────────
 
 def _hash_device_token(raw: str) -> str:
@@ -323,6 +363,12 @@ async def get_optional_user_id(
             headers={"WWW-Authenticate": "Bearer"},
         )
 
+    # Try InsForge JWT first (hackathon auth)
+    insforge_user_id = await _verify_insforge_jwt(token)
+    if insforge_user_id:
+        return insforge_user_id
+
+    # Fall back to Clerk JWT verification
     clerk_sub, clerk_sid = await _verify_clerk_jwt(token)
     if not clerk_sub:
         raise HTTPException(
