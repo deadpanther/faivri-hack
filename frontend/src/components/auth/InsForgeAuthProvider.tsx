@@ -36,6 +36,18 @@ const AuthContext = createContext<AuthContextValue>({
   signInWithGoogle: async () => ({ error: 'Not initialized' }),
 })
 
+/** Extract the access token from InsForge SDK's HTTP client headers */
+function getAccessTokenFromSDK(): string | null {
+  try {
+    const headers = insforge.getHttpClient().getHeaders()
+    const authHeader = headers.Authorization || headers.authorization
+    if (authHeader) {
+      return authHeader.replace(/^Bearer\s+/i, '')
+    }
+  } catch {}
+  return null
+}
+
 function extractUser(raw: any): User | null {
   if (!raw) return null
   return {
@@ -57,8 +69,8 @@ export function InsForgeAuthProvider({ children }: { children: ReactNode }) {
         const { data, error } = await insforge.auth.getCurrentUser()
         if (!cancelled && !error && data?.user) {
           setUser(extractUser(data.user))
-          // Also persist the token if available after session restore
-          const token = insforge.getAccessToken()
+          // Persist token after session restore
+          const token = getAccessTokenFromSDK()
           if (token) setPersistedToken(token)
         }
       } catch {
@@ -74,13 +86,15 @@ export function InsForgeAuthProvider({ children }: { children: ReactNode }) {
     try {
       const { data, error } = await insforge.auth.signInWithPassword({ email, password })
       if (error) return { error: error.nextActions ?? error.message ?? 'Sign in failed' }
-      // Persist the access token so the API client always has it
-      if (data?.accessToken) {
-        setPersistedToken(data.accessToken)
+      // The SDK stores the token internally after signInWithPassword
+      // Extract and persist it for our API client
+      const token = getAccessTokenFromSDK()
+      if (token) {
+        setPersistedToken(token)
       }
       if (data?.user) {
         setUser(extractUser(data.user))
-      } else if (data?.accessToken) {
+      } else {
         // signInWithPassword may not return user — fetch it
         const { data: userData } = await insforge.auth.getCurrentUser()
         if (userData?.user) setUser(extractUser(userData.user))

@@ -138,9 +138,11 @@ async def get_query_detail(
     user_id: str = Depends(require_user_id),
 ):
     """Get full verdict details for a query owned by the current user."""
+    # SQLite stores UUIDs as strings — must coerce the UUID param to str
+    qid = str(query_id)
     result = await db.execute(
         select(QueryModel).where(
-            QueryModel.id == query_id,
+            QueryModel.id == qid,
             QueryModel.user_id == user_id,
         )
     )

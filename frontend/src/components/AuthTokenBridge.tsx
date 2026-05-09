@@ -10,49 +10,80 @@ import { setAuthTokenGetter, setPersistedToken } from '@/lib/api'
  * so every backend request carries Authorization: Bearer ***
  *
  * Strategy:
- * 1. On sign-in, the InsForge SDK stores the access token in memory.
- * 2. We also persist it to sessionStorage as a backup.
- * 3. If the in-memory token is lost (HMR, navigation), the API client
- *    falls back to the persisted token.
- * 4. If both are empty, try refreshSession() to get a new token.
+ * 1. InsForgeClient does NOT expose getAccessToken() publicly.
+ *    Instead, we use getHttpClient().getHeaders() which returns
+ *    { Authorization: "Bearer <token>" } if a token is set.
+ * 2. We also persist the raw token to sessionStorage as backup.
+ * 3. If both are empty, try refreshSession() to get a new token.
+ *
+ * CRITICAL: This component MUST be rendered inside InsForgeAuthProvider
+ * so that useAuth() works. It's placed in Providers.tsx.
  */
 export function AuthTokenBridge(): null {
   const { user } = useAuth()
 
   useEffect(() => {
+    // Register the token getter IMMEDIATELY — don't wait for user to be non-null.
     setAuthTokenGetter(async () => {
       try {
-        // Fast path: return in-memory token if available
-        let token = insforge.getAccessToken()
-        if (token) {
-          setPersistedToken(token)
-          return token
+        // Method 1: Use InsForge SDK's HTTP client headers
+        // getHeaders() returns { Authorization: "Bearer <token>" } when token is set
+        const headers = insforge.getHttpClient().getHeaders()
+        if (headers.Authorization || headers.authorization) {
+          const authHeader = headers.Authorization || headers.authorization
+          const token = authHeader.replace(/^Bearer\s+/i, '')
+          if (token) {
+            setPersistedToken(token)
+            return token
+          }
         }
 
-        // In-memory token lost — try persisted backup
+        // Method 2: Check sessionStorage backup
         const persisted = sessionStorage.getItem('faivri:insforge-access-token')
         if (persisted) {
           console.log('[AuthTokenBridge] using persisted token backup')
+          // Re-set it on the SDK so future SDK calls also work
+          insforge.setAccessToken(persisted)
           return persisted
         }
 
-        // Both empty — try to refresh the session via httpOnly cookie
+        // Method 3: Try to refresh the session via httpOnly cookie
         console.log('[AuthTokenBridge] attempting session refresh...')
         const { data, error } = await insforge.auth.refreshSession()
         if (error) {
           console.warn('[AuthTokenBridge] refresh failed:', error.message)
           return null
         }
-        token = data?.accessToken ?? insforge.getAccessToken()
-        if (token) {
-          setPersistedToken(token)
+        // After refresh, the SDK should have the token internally
+        const refreshedHeaders = insforge.getHttpClient().getHeaders()
+        const refreshedAuth = refreshedHeaders.Authorization || refreshedHeaders.authorization
+        if (refreshedAuth) {
+          const token = refreshedAuth.replace(/^Bearer\s+/i, '')
+          if (token) {
+            setPersistedToken(token)
+            return token
+          }
         }
-        return token ?? null
+        return null
       } catch (err) {
         console.warn('[AuthTokenBridge] token getter error:', err)
         return null
       }
     })
+
+    return () => setAuthTokenGetter(null)
+  }, []) // Register once
+
+  // Keep sessionStorage in sync when user changes
+  useEffect(() => {
+    if (user) {
+      const headers = insforge.getHttpClient().getHeaders()
+      const authHeader = headers.Authorization || headers.authorization
+      if (authHeader) {
+        const token = authHeader.replace(/^Bearer\s+/i, '')
+        if (token) setPersistedToken(token)
+      }
+    }
   }, [user])
 
   return null

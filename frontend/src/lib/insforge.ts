@@ -4,7 +4,12 @@
  * Usage:
  *   import { insforge } from '@/lib/insforge'
  *   await insforge.auth.signInWithPassword({ email, password })
- *   const token = insforge.getAccessToken()
+ *   const headers = insforge.getHttpClient().getHeaders()
+ *   // headers.Authorization = "Bearer <token>"
+ *
+ * NOTE: InsForgeClient does NOT have a public getAccessToken() method.
+ * Use insforge.getHttpClient().getHeaders() to get the Authorization header,
+ * or insforge.setAccessToken(token) to set it externally.
  */
 
 import { createClient, type InsForgeClient } from '@insforge/sdk'

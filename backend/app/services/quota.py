@@ -40,8 +40,8 @@ from app.models.db import Profile
 # match what the Lemon Squeezy webhook writes into `profiles.plan` and the
 # strings rendered on the pricing page.
 PLAN_LIMITS: dict[str, Optional[int]] = {
-    "scout": 3,
-    "signal": 20,
+    "scout": 100,
+    "signal": 500,
     "command": None,
 }
 
