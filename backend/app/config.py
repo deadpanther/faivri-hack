@@ -41,7 +41,7 @@ class Settings(BaseSettings):
     # custom domain suffix (e.g. ".faivri.com") must be listed here.
     clerk_allowed_issuer_hosts: str = ""
     cors_origins: str = "http://localhost:3000,http://localhost:8008"
-    default_provider: str = "anthropic"
+    default_provider: str = "openai"
     admin_api_key: str = ""
 
     # Lemon Squeezy webhook signing secret + variant→plan mapping.

@@ -455,7 +455,7 @@ export const api = {
   ) => {
     const formData = new FormData()
     formData.append('image', file)
-    formData.append('provider', provider || 'anthropic')
+    formData.append('provider', provider || 'openai')
     if (lat !== undefined) formData.append('lat', String(lat))
     if (lng !== undefined) formData.append('lng', String(lng))
     if (city) formData.append('city', city)
@@ -473,7 +473,7 @@ export const api = {
   ) => {
     const formData = new FormData()
     formData.append('audio', audioBlob, 'recording.webm')
-    formData.append('provider', provider || 'anthropic')
+    formData.append('provider', provider || 'openai')
     if (lat !== undefined) formData.append('lat', String(lat))
     if (lng !== undefined) formData.append('lng', String(lng))
     if (city) formData.append('city', city)

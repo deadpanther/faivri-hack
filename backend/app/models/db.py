@@ -3,9 +3,25 @@ from datetime import datetime
 
 from sqlalchemy import (
     Column, String, Integer, Text, Numeric, Boolean, DateTime, ForeignKey, Index,
-    UniqueConstraint,
+    UniqueConstraint, JSON,
 )
-from sqlalchemy.dialects.postgresql import UUID, JSONB, ENUM
+from sqlalchemy.dialects.postgresql import UUID as _PG_UUID, ENUM as PG_ENUM
+
+# JSONB for Postgres, JSON for everything else (SQLite)
+try:
+    from sqlalchemy.dialects.postgresql import JSONB as _JSONB
+    from app.config import settings
+    _JSON = _JSONB if not settings.database_url.startswith("sqlite") else JSON
+    if settings.database_url.startswith("sqlite"):
+        def _UUID(**kwargs):
+            """SQLite-compatible UUID: stored as String, ignores as_uuid."""
+            return String(36)
+    else:
+        _UUID = _PG_UUID
+except Exception:
+    _JSON = JSON
+    def _UUID(**kwargs):
+        return String(36)
 from sqlalchemy.orm import DeclarativeBase, relationship
 
 
@@ -13,16 +29,26 @@ class Base(DeclarativeBase):
     pass
 
 
-domain_enum = ENUM("auto", "medical", "home", "legal", "retail", name="domain_type", create_type=True)
-verdict_enum = ENUM("fair", "high", "overcharge", name="verdict_type", create_type=True)
-currency_enum = ENUM("INR", "USD", name="currency_type", create_type=True)
-country_enum = ENUM("IN", "US", name="country_type", create_type=True)
+# Enums: PG_ENUM for Postgres, String for SQLite
+from app.config import settings as _settings
+_use_pg_enum = not _settings.database_url.startswith("sqlite")
+
+if _use_pg_enum:
+    domain_enum = PG_ENUM("auto", "medical", "home", "legal", "retail", name="domain_type", create_type=True)
+    verdict_enum = PG_ENUM("fair", "high", "overcharge", name="verdict_type", create_type=True)
+    currency_enum = PG_ENUM("INR", "USD", name="currency_type", create_type=True)
+    country_enum = PG_ENUM("IN", "US", name="country_type", create_type=True)
+else:
+    domain_enum = String(16)
+    verdict_enum = String(16)
+    currency_enum = String(3)
+    country_enum = String(2)
 
 
 class Profile(Base):
     __tablename__ = "profiles"
 
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    id = Column(_UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     clerk_user_id = Column(String, unique=True, nullable=False, index=True)
     display_name = Column(String, nullable=True)
     city = Column(String, nullable=True)
@@ -67,8 +93,8 @@ class Profile(Base):
 class Query(Base):
     __tablename__ = "queries"
 
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    user_id = Column(UUID(as_uuid=True), ForeignKey("profiles.id"), nullable=True)
+    id = Column(_UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    user_id = Column(_UUID(as_uuid=True), ForeignKey("profiles.id"), nullable=True)
     domain = Column(domain_enum, nullable=False)
     input_text = Column(Text, nullable=False)
     location_city = Column(String, nullable=False)
@@ -82,10 +108,10 @@ class Query(Base):
     confidence_score = Column(Integer, nullable=True)
     data_points_count = Column(Integer, nullable=True)
     explanation = Column(Text, nullable=True)
-    red_flags = Column(JSONB, nullable=True)
-    questions_to_ask = Column(JSONB, nullable=True)
-    negotiation_script = Column(JSONB, nullable=True)
-    sources_used = Column(JSONB, nullable=True)
+    red_flags = Column(_JSON, nullable=True)
+    questions_to_ask = Column(_JSON, nullable=True)
+    negotiation_script = Column(_JSON, nullable=True)
+    sources_used = Column(_JSON, nullable=True)
     llm_model_used = Column(String, nullable=True)
     cost_cents = Column(Integer, nullable=True)
     feedback_final_price = Column(Integer, nullable=True)
@@ -102,7 +128,7 @@ class Query(Base):
 class PricingKnowledge(Base):
     __tablename__ = "pricing_knowledge"
 
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    id = Column(_UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     domain = Column(domain_enum, nullable=False)
     category = Column(String, nullable=False)
     item_name = Column(String, nullable=False)
@@ -115,7 +141,7 @@ class PricingKnowledge(Base):
     source = Column(String, nullable=True)
     source_url = Column(String, nullable=True)
     confidence = Column(Integer, default=80)
-    extra_metadata = Column("metadata", JSONB, nullable=True)
+    extra_metadata = Column("metadata", _JSON, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
@@ -127,13 +153,13 @@ class PricingKnowledge(Base):
 class CommunityPrice(Base):
     __tablename__ = "community_prices"
 
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    user_id = Column(UUID(as_uuid=True), ForeignKey("profiles.id"), nullable=True)
+    id = Column(_UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    user_id = Column(_UUID(as_uuid=True), ForeignKey("profiles.id"), nullable=True)
     # Enforce one canonical community row per source query. Prevents feedback
     # double-submits from inflating community counts or distorting vendor
     # statistics (DATA-P1-01).
     query_id = Column(
-        UUID(as_uuid=True),
+        _UUID(as_uuid=True),
         ForeignKey("queries.id"),
         nullable=True,
         unique=True,
@@ -166,8 +192,8 @@ class CommunityPrice(Base):
 class Vehicle(Base):
     __tablename__ = "vehicles"
 
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    user_id = Column(UUID(as_uuid=True), ForeignKey("profiles.id"), nullable=False)
+    id = Column(_UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    user_id = Column(_UUID(as_uuid=True), ForeignKey("profiles.id"), nullable=False)
     make = Column(String, nullable=False)
     model = Column(String, nullable=False)
     year = Column(Integer, nullable=True)
@@ -191,8 +217,8 @@ class PurchaseAnalysis(Base):
     """
     __tablename__ = "purchase_analyses"
 
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    user_id = Column(UUID(as_uuid=True), ForeignKey("profiles.id"), nullable=True)
+    id = Column(_UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    user_id = Column(_UUID(as_uuid=True), ForeignKey("profiles.id"), nullable=True)
     make = Column(String, nullable=False)
     model = Column(String, nullable=False)
     year = Column(Integer, nullable=False)
@@ -201,7 +227,7 @@ class PurchaseAnalysis(Base):
     vin = Column(String(17), nullable=True)
     city = Column(String, nullable=True)
     country = Column(country_enum, nullable=False)
-    payload = Column(JSONB, nullable=False)
+    payload = Column(_JSON, nullable=False)
     created_at = Column(DateTime, default=datetime.utcnow)
 
     __table_args__ = (
@@ -223,12 +249,12 @@ class NegotiationConversation(Base):
     """
     __tablename__ = "negotiation_conversations"
 
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    user_id = Column(UUID(as_uuid=True), ForeignKey("profiles.id"), nullable=True)
-    query_id = Column(UUID(as_uuid=True), ForeignKey("queries.id"), nullable=False, index=True)
+    id = Column(_UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    user_id = Column(_UUID(as_uuid=True), ForeignKey("profiles.id"), nullable=True)
+    query_id = Column(_UUID(as_uuid=True), ForeignKey("queries.id"), nullable=False, index=True)
     session_id = Column(String, nullable=False)
     # messages: [{"role": "user"|"assistant", "content": "...", "at": iso}]
-    messages = Column(JSONB, nullable=False, default=list)
+    messages = Column(_JSON, nullable=False, default=list)
     # Last suggested price (cents) — kept at top-level for quick aggregates.
     last_suggested_price = Column(Integer, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
@@ -259,15 +285,15 @@ class CounterOffer(Base):
     """
     __tablename__ = "counter_offers"
 
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    user_id = Column(UUID(as_uuid=True), ForeignKey("profiles.id"), nullable=True)
-    query_id = Column(UUID(as_uuid=True), ForeignKey("queries.id"), nullable=False)
+    id = Column(_UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    user_id = Column(_UUID(as_uuid=True), ForeignKey("profiles.id"), nullable=True)
+    query_id = Column(_UUID(as_uuid=True), ForeignKey("queries.id"), nullable=False)
     counter_offer_cents = Column(Integer, nullable=False)
     original_target_cents = Column(Integer, nullable=False)
     # Full CounterOfferResponse payload (should_accept, response_script,
     # reasoning, suggested_counter). Stored verbatim so reads avoid re-running
     # the LLM and the schema can evolve without a backfill.
-    response_payload = Column(JSONB, nullable=False)
+    response_payload = Column(_JSON, nullable=False)
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
 
     __table_args__ = (
@@ -283,7 +309,7 @@ class WaitlistEntry(Base):
     """Marketing-site waitlist signup. Email is the natural unique key."""
     __tablename__ = "waitlist_entries"
 
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    id = Column(_UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     email = Column(String, unique=True, nullable=False, index=True)
     source = Column(String, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
@@ -305,12 +331,12 @@ class ShareToken(Base):
     """
     __tablename__ = "share_tokens"
 
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    id = Column(_UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     token = Column(String(40), nullable=False, unique=True, index=True)
     kind = Column(String(16), nullable=False)  # "query" | "purchase"
-    query_id = Column(UUID(as_uuid=True), ForeignKey("queries.id"), nullable=True)
-    purchase_id = Column(UUID(as_uuid=True), ForeignKey("purchase_analyses.id"), nullable=True)
-    owner_id = Column(UUID(as_uuid=True), ForeignKey("profiles.id"), nullable=True)
+    query_id = Column(_UUID(as_uuid=True), ForeignKey("queries.id"), nullable=True)
+    purchase_id = Column(_UUID(as_uuid=True), ForeignKey("purchase_analyses.id"), nullable=True)
+    owner_id = Column(_UUID(as_uuid=True), ForeignKey("profiles.id"), nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
     expires_at = Column(DateTime, nullable=True)
     view_count = Column(Integer, nullable=False, default=0)
@@ -335,9 +361,9 @@ class ListingWatch(Base):
     """
     __tablename__ = "listing_watches"
 
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    user_id = Column(UUID(as_uuid=True), ForeignKey("profiles.id"), nullable=True)
-    query_id = Column(UUID(as_uuid=True), ForeignKey("queries.id"), nullable=True)
+    id = Column(_UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    user_id = Column(_UUID(as_uuid=True), ForeignKey("profiles.id"), nullable=True)
+    query_id = Column(_UUID(as_uuid=True), ForeignKey("queries.id"), nullable=True)
     listing_url = Column(String, nullable=False)
     platform = Column(String, nullable=True)  # "ebay" | "facebook" | other
     fair_high_cents = Column(Integer, nullable=True)
@@ -369,11 +395,11 @@ class WebhookEvent(Base):
 
     __tablename__ = "webhook_events"
 
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    id = Column(_UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     provider = Column(String, nullable=False)
     event_id = Column(String, nullable=False)
     event_name = Column(String, nullable=True)
-    payload = Column(JSONB, nullable=True)
+    payload = Column(_JSON, nullable=True)
     received_at = Column(DateTime, default=datetime.utcnow, nullable=False)
     processed_at = Column(DateTime, nullable=True)
 
@@ -395,11 +421,11 @@ class WebhookFailure(Base):
 
     __tablename__ = "webhook_failures"
 
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    id = Column(_UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     provider = Column(String, nullable=False)
     event_id = Column(String, nullable=True)
     event_name = Column(String, nullable=True)
-    payload = Column(JSONB, nullable=True)
+    payload = Column(_JSON, nullable=True)
     error = Column(Text, nullable=False)
     received_at = Column(DateTime, default=datetime.utcnow, nullable=False)
     resolved_at = Column(DateTime, nullable=True)
@@ -423,8 +449,8 @@ class ProfileSession(Base):
 
     __tablename__ = "profile_sessions"
 
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    user_id = Column(UUID(as_uuid=True), ForeignKey("profiles.id"), nullable=False)
+    id = Column(_UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    user_id = Column(_UUID(as_uuid=True), ForeignKey("profiles.id"), nullable=False)
     clerk_session_id = Column(String, nullable=False, unique=True, index=True)
     user_agent = Column(String, nullable=True)
     first_seen_at = Column(DateTime, default=datetime.utcnow, nullable=False)
@@ -448,8 +474,8 @@ class ExtensionDeviceToken(Base):
 
     __tablename__ = "extension_device_tokens"
 
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    user_id = Column(UUID(as_uuid=True), ForeignKey("profiles.id"), nullable=False)
+    id = Column(_UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    user_id = Column(_UUID(as_uuid=True), ForeignKey("profiles.id"), nullable=False)
     token_hash = Column(String(128), nullable=False, unique=True, index=True)
     label = Column(String(128), nullable=True)
     user_agent = Column(String(512), nullable=True)
@@ -466,7 +492,7 @@ class NegotiationSession(Base):
     """HydraDB — durable negotiation memory header.
 
     Backs `app.services.hydradb`. One row per active negotiation (keyed
-    by `query_id`). The `price_points` JSONB array is the append-only
+    by `query_id`). The `price_points` _JSON array is the append-only
     timeline of every counter-offer or seller message that landed on a
     number — the Memory dashboard renders the fluctuation curve directly
     off this column.
@@ -480,10 +506,10 @@ class NegotiationSession(Base):
 
     __tablename__ = "negotiation_sessions"
 
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    user_id = Column(UUID(as_uuid=True), ForeignKey("profiles.id"), nullable=True)
+    id = Column(_UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    user_id = Column(_UUID(as_uuid=True), ForeignKey("profiles.id"), nullable=True)
     query_id = Column(
-        UUID(as_uuid=True),
+        _UUID(as_uuid=True),
         ForeignKey("queries.id"),
         nullable=False,
         unique=True,
@@ -491,7 +517,7 @@ class NegotiationSession(Base):
     walk_away_cents = Column(Integer, nullable=True)
     target_offer_cents = Column(Integer, nullable=True)
     seller_tone = Column(String(32), nullable=True)
-    price_points = Column(JSONB, nullable=False, default=list)
+    price_points = Column(_JSON, nullable=False, default=list)
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
     last_seen_at = Column(DateTime, default=datetime.utcnow, nullable=False)
 
@@ -518,7 +544,7 @@ class ExtensionPairCode(Base):
     __tablename__ = "extension_pair_codes"
 
     code = Column(String(64), primary_key=True)
-    user_id = Column(UUID(as_uuid=True), nullable=True)
+    user_id = Column(_UUID(as_uuid=True), nullable=True)
     device_token_hash = Column(String(128), nullable=True)
     user_agent = Column(String(512), nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)

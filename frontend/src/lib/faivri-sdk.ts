@@ -124,7 +124,7 @@ export class FaivriClient {
   ): Promise<VerdictData> {
     const formData = this.locationForm(options)
     formData.append('image', file)
-    formData.append('provider', options?.provider || 'anthropic')
+    formData.append('provider', options?.provider || 'openai')
     return this.upload<VerdictData>('/api/v1/analyze/image', formData)
   }
 
@@ -134,7 +134,7 @@ export class FaivriClient {
   ): Promise<VerdictData> {
     const formData = this.locationForm(options)
     formData.append('audio', audioBlob, 'recording.webm')
-    formData.append('provider', options?.provider || 'anthropic')
+    formData.append('provider', options?.provider || 'openai')
     return this.upload<VerdictData>('/api/v1/analyze/voice', formData)
   }
 

@@ -105,7 +105,7 @@ export default function AnalyzerStudio() {
   const fileInputRef = useRef<HTMLInputElement>(null)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const recognitionRef = useRef<SpeechRecognitionLike | null>(null)
-  const provider = 'anthropic'
+  const provider = 'openai'
   const [showAuthModal, setShowAuthModal] = useState<'sign-in' | 'sign-up' | null>(null)
 
   const [query, setQuery] = useState('')

@@ -228,7 +228,7 @@ async def analyze_image(
     country: str = Form(None),
     lat: float = Form(None),
     lng: float = Form(None),
-    provider: str = Form("anthropic"),
+    provider: str = Form("openai"),
     db: AsyncSession = Depends(get_db),
     user_id: str | None = Depends(enforce_extension_auth),
 ):
@@ -303,7 +303,7 @@ async def analyze_voice(
     country: str = Form(None),
     lat: float = Form(None),
     lng: float = Form(None),
-    provider: str = Form("anthropic"),
+    provider: str = Form("openai"),
     db: AsyncSession = Depends(get_db),
     user_id: str | None = Depends(enforce_extension_auth),
 ):
@@ -434,7 +434,7 @@ async def analyze_purchase_endpoint(
     asking_price: int = Form(...),
     city: str = Form(...),
     country: str = Form(...),
-    provider: str = Form("anthropic"),
+    provider: str = Form("openai"),
     db: AsyncSession = Depends(get_db),
     user_id: str | None = Depends(enforce_extension_auth),
 ):
@@ -554,7 +554,7 @@ async def analyze_purchase_json(
 async def analyze_purchase_screenshot(
     request: Request,
     image: UploadFile = File(...),
-    provider: str = Form("anthropic"),
+    provider: str = Form("openai"),
     db: AsyncSession = Depends(get_db),
     user_id: str | None = Depends(enforce_extension_auth),
 ):

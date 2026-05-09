@@ -55,7 +55,7 @@ const EMPTY_FORM: VehicleForm = {
 export default function UsedCarsPage() {
   const router = useRouter()
   const fileInputRef = useRef<HTMLInputElement>(null)
-  const provider = 'anthropic'
+  const provider = 'openai'
 
   const [form, setForm] = useState<VehicleForm>(EMPTY_FORM)
   const [diligence, setDiligence] = useState<Record<string, string>>(EMPTY_DILIGENCE)
