@@ -239,38 +239,38 @@ async def _resolve_profile_id(db: AsyncSession, clerk_sub: str) -> Optional[str]
 # ─── InsForge JWT verification (hackathon) ──────────────────────────────────
 
 async def _verify_insforge_jwt(token: str) -> Optional[str]:
-    """Verify an InsForge-issued JWT and return the profile UUID.
+    """Verify an InsForge-issued JWT by calling the InsForge auth API.
 
-    InsForge signs JWTs with HS256 using the project's anon key as secret.
-    We decode the JWT, extract the user ID (sub claim), and resolve/create
-    the profile row just like the Clerk path.
+    InsForge signs access tokens with a project JWT secret we don't have.
+    Instead of trying to verify locally, we call getCurrentUser to validate
+    the token and get the user ID.
     """
     try:
-        # InsForge JWTs are HS256 signed with the anon key
-        anon_key = settings.insforge_anon_key
-        if not anon_key:
+        insforge_url = settings.insforge_url
+        if not insforge_url:
             return None
 
-        payload = jwt.decode(
-            token,
-            anon_key,
-            algorithms=["HS256"],
-            options={"verify_exp": True, "verify_aud": False},
-            leeway=JWT_LEEWAY_SECONDS,
-        )
+        async with httpx.AsyncClient(timeout=5.0) as client:
+            resp = await client.get(
+                f"{insforge_url}/api/auth/sessions/current",
+                headers={
+                    "Authorization": f"Bearer {token}",
+                },
+            )
+            if resp.status_code != 200:
+                return None
+            data = resp.json()
+            # Response shape: {"user": {"id": "...", ...}}
+            user_obj = data.get("user", data)
+            user_id = user_obj.get("id") or data.get("sub")
+            if not user_id:
+                return None
 
-        sub = payload.get("sub")
-        if not sub or not isinstance(sub, str):
-            return None
-
-        # sub is the InsForge user UUID — resolve to internal profile
-        # For hackathon, use the InsForge user ID directly as clerk_user_id
+        # Resolve to internal profile
         from app.services.database import async_session
         async with async_session() as db:
-            profile_id = await _resolve_profile_id(db, f"insforge_{sub}")
+            profile_id = await _resolve_profile_id(db, f"insforge_{user_id}")
             return profile_id
-    except jwt.PyJWTError:
-        return None
     except Exception:
         logger.exception("Unexpected error verifying InsForge JWT")
         return None

@@ -1,4 +1,8 @@
-import uuid
+import uuid as _uuid
+
+def _uuid_str():
+    """Return a UUID as string (SQLite-safe)."""
+    return str(_uuid.uuid4())
 from datetime import datetime
 
 from sqlalchemy import (
@@ -48,7 +52,7 @@ else:
 class Profile(Base):
     __tablename__ = "profiles"
 
-    id = Column(_UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    id = Column(_UUID(as_uuid=True), primary_key=True, default=_uuid_str)
     clerk_user_id = Column(String, unique=True, nullable=False, index=True)
     display_name = Column(String, nullable=True)
     city = Column(String, nullable=True)
@@ -93,7 +97,7 @@ class Profile(Base):
 class Query(Base):
     __tablename__ = "queries"
 
-    id = Column(_UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    id = Column(_UUID(as_uuid=True), primary_key=True, default=_uuid_str)
     user_id = Column(_UUID(as_uuid=True), ForeignKey("profiles.id"), nullable=True)
     domain = Column(domain_enum, nullable=False)
     input_text = Column(Text, nullable=False)
@@ -128,7 +132,7 @@ class Query(Base):
 class PricingKnowledge(Base):
     __tablename__ = "pricing_knowledge"
 
-    id = Column(_UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    id = Column(_UUID(as_uuid=True), primary_key=True, default=_uuid_str)
     domain = Column(domain_enum, nullable=False)
     category = Column(String, nullable=False)
     item_name = Column(String, nullable=False)
@@ -153,7 +157,7 @@ class PricingKnowledge(Base):
 class CommunityPrice(Base):
     __tablename__ = "community_prices"
 
-    id = Column(_UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    id = Column(_UUID(as_uuid=True), primary_key=True, default=_uuid_str)
     user_id = Column(_UUID(as_uuid=True), ForeignKey("profiles.id"), nullable=True)
     # Enforce one canonical community row per source query. Prevents feedback
     # double-submits from inflating community counts or distorting vendor
@@ -192,7 +196,7 @@ class CommunityPrice(Base):
 class Vehicle(Base):
     __tablename__ = "vehicles"
 
-    id = Column(_UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    id = Column(_UUID(as_uuid=True), primary_key=True, default=_uuid_str)
     user_id = Column(_UUID(as_uuid=True), ForeignKey("profiles.id"), nullable=False)
     make = Column(String, nullable=False)
     model = Column(String, nullable=False)
@@ -217,7 +221,7 @@ class PurchaseAnalysis(Base):
     """
     __tablename__ = "purchase_analyses"
 
-    id = Column(_UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    id = Column(_UUID(as_uuid=True), primary_key=True, default=_uuid_str)
     user_id = Column(_UUID(as_uuid=True), ForeignKey("profiles.id"), nullable=True)
     make = Column(String, nullable=False)
     model = Column(String, nullable=False)
@@ -249,7 +253,7 @@ class NegotiationConversation(Base):
     """
     __tablename__ = "negotiation_conversations"
 
-    id = Column(_UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    id = Column(_UUID(as_uuid=True), primary_key=True, default=_uuid_str)
     user_id = Column(_UUID(as_uuid=True), ForeignKey("profiles.id"), nullable=True)
     query_id = Column(_UUID(as_uuid=True), ForeignKey("queries.id"), nullable=False, index=True)
     session_id = Column(String, nullable=False)
@@ -285,7 +289,7 @@ class CounterOffer(Base):
     """
     __tablename__ = "counter_offers"
 
-    id = Column(_UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    id = Column(_UUID(as_uuid=True), primary_key=True, default=_uuid_str)
     user_id = Column(_UUID(as_uuid=True), ForeignKey("profiles.id"), nullable=True)
     query_id = Column(_UUID(as_uuid=True), ForeignKey("queries.id"), nullable=False)
     counter_offer_cents = Column(Integer, nullable=False)
@@ -309,7 +313,7 @@ class WaitlistEntry(Base):
     """Marketing-site waitlist signup. Email is the natural unique key."""
     __tablename__ = "waitlist_entries"
 
-    id = Column(_UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    id = Column(_UUID(as_uuid=True), primary_key=True, default=_uuid_str)
     email = Column(String, unique=True, nullable=False, index=True)
     source = Column(String, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
@@ -331,7 +335,7 @@ class ShareToken(Base):
     """
     __tablename__ = "share_tokens"
 
-    id = Column(_UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    id = Column(_UUID(as_uuid=True), primary_key=True, default=_uuid_str)
     token = Column(String(40), nullable=False, unique=True, index=True)
     kind = Column(String(16), nullable=False)  # "query" | "purchase"
     query_id = Column(_UUID(as_uuid=True), ForeignKey("queries.id"), nullable=True)
@@ -361,7 +365,7 @@ class ListingWatch(Base):
     """
     __tablename__ = "listing_watches"
 
-    id = Column(_UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    id = Column(_UUID(as_uuid=True), primary_key=True, default=_uuid_str)
     user_id = Column(_UUID(as_uuid=True), ForeignKey("profiles.id"), nullable=True)
     query_id = Column(_UUID(as_uuid=True), ForeignKey("queries.id"), nullable=True)
     listing_url = Column(String, nullable=False)
@@ -395,7 +399,7 @@ class WebhookEvent(Base):
 
     __tablename__ = "webhook_events"
 
-    id = Column(_UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    id = Column(_UUID(as_uuid=True), primary_key=True, default=_uuid_str)
     provider = Column(String, nullable=False)
     event_id = Column(String, nullable=False)
     event_name = Column(String, nullable=True)
@@ -421,7 +425,7 @@ class WebhookFailure(Base):
 
     __tablename__ = "webhook_failures"
 
-    id = Column(_UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    id = Column(_UUID(as_uuid=True), primary_key=True, default=_uuid_str)
     provider = Column(String, nullable=False)
     event_id = Column(String, nullable=True)
     event_name = Column(String, nullable=True)
@@ -449,7 +453,7 @@ class ProfileSession(Base):
 
     __tablename__ = "profile_sessions"
 
-    id = Column(_UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    id = Column(_UUID(as_uuid=True), primary_key=True, default=_uuid_str)
     user_id = Column(_UUID(as_uuid=True), ForeignKey("profiles.id"), nullable=False)
     clerk_session_id = Column(String, nullable=False, unique=True, index=True)
     user_agent = Column(String, nullable=True)
@@ -474,7 +478,7 @@ class ExtensionDeviceToken(Base):
 
     __tablename__ = "extension_device_tokens"
 
-    id = Column(_UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    id = Column(_UUID(as_uuid=True), primary_key=True, default=_uuid_str)
     user_id = Column(_UUID(as_uuid=True), ForeignKey("profiles.id"), nullable=False)
     token_hash = Column(String(128), nullable=False, unique=True, index=True)
     label = Column(String(128), nullable=True)
@@ -506,7 +510,7 @@ class NegotiationSession(Base):
 
     __tablename__ = "negotiation_sessions"
 
-    id = Column(_UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    id = Column(_UUID(as_uuid=True), primary_key=True, default=_uuid_str)
     user_id = Column(_UUID(as_uuid=True), ForeignKey("profiles.id"), nullable=True)
     query_id = Column(
         _UUID(as_uuid=True),
