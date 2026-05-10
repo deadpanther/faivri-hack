@@ -68,6 +68,7 @@ from app.intelligence.evidence import (
     compute_verdict_math,
     extract_prices_from_results,
 )
+from app.intelligence.nia_agent import gather_evidence as nia_gather_evidence
 from app.intelligence.synthesizer import narrate_verdict
 from app.intelligence.web_search import detect_listing_platform, search_web
 from app.models.db import Query
@@ -138,7 +139,11 @@ async def process_query(
         classification.get("platform")
         or detect_listing_platform(query_text)
     )
-    web_results = await search_web(
+    # Step 3a: NiaAgent fans out Tavily + Nia in parallel and merges
+    # by URL. Nia contributes a synthesized `answer` that the synthesizer
+    # can credit, plus extra trusted-domain coverage that lifts the
+    # confidence_score on thin-evidence queries.
+    nia_bundle = await nia_gather_evidence(
         service=classification.get("service") or query_text,
         city=target_city,
         country=detected_country,
@@ -147,7 +152,10 @@ async def process_query(
         year=classification.get("year"),
         domain_label=domain_label,
         listing_platform=listing_platform,
+        raw_query=query_text,
     )
+    web_results = nia_bundle["web_results"]
+    nia_metadata = nia_bundle["metadata"]
 
     # Step 4: deterministic extraction + range (raises ValueError on thin evidence)
     web_prices = extract_prices_from_results(
@@ -221,6 +229,18 @@ async def process_query(
         web_results_count=len(web_results),
         evidence_sources=fair_range.sources,
     )
+    verdict["sources"]["nia"] = {
+        "live": nia_metadata.get("nia_live", False),
+        "results_count": nia_metadata.get("nia_results_count", 0),
+        "answer_present": nia_metadata.get("nia_answer_present", False),
+        "answer": nia_metadata.get("nia_answer", ""),
+        "query_time_ms": nia_metadata.get("nia_query_time_ms", 0),
+        "sources_searched": nia_metadata.get("nia_sources_searched", 0),
+        "retrieval_log_id": nia_metadata.get("nia_retrieval_log_id"),
+    }
+    verdict["sources"]["tavily"] = {
+        "results_count": nia_metadata.get("tavily_results_count", 0),
+    }
 
     # Step 8: cache the baseline — range + evidence summary only, NO narrative
     baseline = {

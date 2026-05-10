@@ -1,111 +1,122 @@
 # Faivri — AI Negotiation Agent
 
-> Built for **Nozomio AI Nexus** hackathon (May 9, 2026, San Francisco).
+> Built for **Nozomio AI Nexus** (May 9, 2026, San Francisco) — **Ship It track** (Nia + InsForge).
 
-Faivri is an AI-powered consumer protection agent that analyzes prices, detects overcharges, and drafts negotiation replies. It runs 24/7, remembers every negotiation, and gets smarter over time.
+Faivri is an AI consumer-protection agent. Paste a price quote, get back a verdict (`fair` / `slight overcharge` / `overcharge` / `severe overcharge`), a defensible fair-market range, and a ready-to-send negotiation reply — every dollar grounded in live web evidence and a Nia-curated synthesis. No hallucinated numbers, no "trust me bro" verdicts, full source receipts.
 
-## Tracks
+## Demo
 
-Faivri targets three hackathon tracks simultaneously:
+- **Live**: https://faivri.com
+- **Sign in with InsForge**, paste a quote like *"2018 Honda Civic LX, 70k miles, dealer asking $14,500 in San Francisco"*, hit Analyze.
+- The verdict card shows the fair range, sources, and the synthesized Nia answer. The `Negotiate` button drafts a reply you can copy-paste to the seller.
 
-| Track | Sponsors | How Faivri uses them |
-|---|---|---|
-| **Ship It** — Full-Stack Agents | Nia + InsForge | Production-deployed app with InsForge auth + DB; Nia indexes pricing docs for real-time context |
-| **Company Brain** | Nia + Hyperspell | Hyperspell ingests negotiation history across Slack/email/docs; agents reason with full context |
-| **Always-On Agents** | Nia + Tensorlake | Tensorlake sandboxes run background price monitors that wake on schedule and remember state |
-
-## Architecture
+## Ship It architecture (Nia + InsForge)
 
 ```
-┌──────────────────────────────────────────────────────┐
-│  Frontend (Next.js 15 + Vercel)                      │
-│  ┌─────────────┐  ┌──────────────┐  ┌──────────────┐│
-│  │ InsForge Auth│  │ Analyzer UI  │  │ Messages UI  ││
-│  └──────┬──────┘  └──────┬───────┘  └──────┬───────┘│
-└─────────┼────────────────┼──────────────────┼────────┘
-          │                │                  │
-┌─────────▼────────────────▼──────────────────▼────────┐
-│  Backend (FastAPI + Postgres via InsForge)             │
-│  ┌──────────┐  ┌───────────┐  ┌──────────────────┐  │
-│  │ Nia      │  │Hyperspell │  │ Tensorlake       │  │
-│  │ Search   │  │ Memory    │  │ Price Monitors   │  │
-│  └──────────┘  └───────────┘  └──────────────────┘  │
-│  ┌──────────┐  ┌───────────┐  ┌──────────────────┐  │
-│  │ Analyze  │  │ Negotiate │  │ Reply Coach      │  │
-│  └──────────┘  └───────────┘  └──────────────────┘  │
-└──────────────────────────────────────────────────────┘
+ ┌──────────────────────────────────────────────────────────────┐
+ │  Frontend (Next.js 15)                                       │
+ │  ┌──────────────────────┐   ┌──────────────────────────────┐ │
+ │  │ InsForge Auth (PKCE) │   │ Analyzer + Negotiate UI      │ │
+ │  └──────────┬───────────┘   └──────────────┬───────────────┘ │
+ └─────────────┼──────────────────────────────┼─────────────────┘
+               │   InsForge JWT               │
+ ┌─────────────▼──────────────────────────────▼─────────────────┐
+ │  FastAPI backend                                             │
+ │  ┌────────────────────────────────────────────────────────┐  │
+ │  │  /api/v1/analyze                                       │  │
+ │  │     │                                                  │  │
+ │  │     ├── NiaAgent.gather_evidence()  ── parallel ──┐    │  │
+ │  │     │     ├─ Tavily web search    (broad recall)  │    │  │
+ │  │     │     └─ Nia /v2/query        (synthesis +    │    │  │
+ │  │     │                              retrieval log) │    │  │
+ │  │     │                                             │    │  │
+ │  │     ├── extract_prices_from_results (regex, Py)   │    │  │
+ │  │     ├── build_fair_range (trust-weighted, Py)     │    │  │
+ │  │     └── verdict + sources.nia.{retrieval_log_id,  │    │  │
+ │  │                                  query_time_ms,   │    │  │
+ │  │                                  answer, …}       │    │  │
+ │  └────────────────────────────────────────────────────────┘  │
+ │  Postgres (InsForge): users, sessions, queries, verdicts,    │
+ │                       extracted_prices, drafts               │
+ └──────────────────────────────────────────────────────────────┘
 ```
 
-## Sponsor Integrations
+**Why two retrieval providers?** Tavily gives breadth and recency on the open web; Nia adds a synthesized, citable answer plus a `retrieval_log_id` we surface to the user as proof of grounding. They run concurrently via `asyncio.gather`, results dedupe by URL, and the unchanged price-extraction pipeline consumes both — Nia evidence flows through with a `provider: "nia"` tag, no special-case branches downstream.
 
-### Nia (mandatory — all tracks)
-- **What**: Context augmentation layer that indexes repos, docs, PDFs, and data sources
-- **How Faivri uses it**: When analyzing a price, Faivri queries Nia for fair-market data, pricing trends, and consumer reports. This eliminates hallucination — every verdict is grounded in indexed, current sources.
-- **API**: `POST /api/v1/nia/search` — search for pricing context
-- **Env vars**: `NIA_API_KEY`, `NIA_API_URL`
+## Sponsor integrations
 
-### InsForge (Ship It track)
-- **What**: Backend for agentic development — auth, database, storage, edge functions
-- **How Faivri uses it**: Replaces Clerk auth with InsForge's auth SDK. All user accounts, sessions, and database queries go through InsForge's managed Postgres.
-- **Env vars**: `NEXT_PUBLIC_INSFORGE_URL`, `NEXT_PUBLIC_INSFORGE_ANON_KEY`, `INSFORGE_SERVICE_ROLE_KEY`
+### Nia — agentic search backbone (load-bearing)
+- **Endpoint**: `POST https://apigcp.trynia.ai/v2/query` with `{messages:[{role,content}]}`
+- **Where it lives in code**:
+  - [`backend/app/services/nia.py`](backend/app/services/nia.py) — Nia client (late-bound key/URL, Tavily-shape result reshape, `/v2/contexts` save hook)
+  - [`backend/app/intelligence/nia_agent.py`](backend/app/intelligence/nia_agent.py) — parallel Tavily + Nia fan-out + URL dedup
+  - [`backend/app/routers/nia.py`](backend/app/routers/nia.py) — `POST /api/v1/nia/search` exposes the raw oracle
+- **Surfaced in verdict response** under `sources.nia` so the UI and judges can see Nia is real:
+  ```json
+  "sources": {
+    "nia": {
+      "live": true,
+      "results_count": 10,
+      "answer_present": true,
+      "answer": "Based on indexed sources, used Civic LX values cluster …",
+      "query_time_ms": 6854,
+      "sources_searched": 8,
+      "retrieval_log_id": "89a876d5-73c3-49a4-9ffb-c90fdafec343"
+    },
+    "tavily": { "results_count": 23 }
+  }
+  ```
+- **Fallback**: if `NIA_API_KEY` is unset, `_simulate_search` returns the same shape with `live: false` so callers never branch on provider availability.
 
-### Hyperspell (Company Brain track)
-- **What**: The company brain for AI agents — ingests Slack, Gmail, Drive, GitHub, Notion
-- **How Faivri uses it**: Stores negotiation outcomes, seller patterns, and learned strategies. When a user starts a new negotiation, Hyperspell retrieves relevant past sessions so the agent reasons with full context, not just the latest query.
-- **API**: `POST /api/v1/hyperspell/memories`, `POST /api/v1/hyperspell/query`
-- **Env vars**: `HYPERSPELL_API_KEY`, `HYPERSPELL_API_URL`
+### InsForge — auth + Postgres (load-bearing)
+- **Frontend SDK**: [`frontend/src/lib/insforge.ts`](frontend/src/lib/insforge.ts) wraps `@insforge/sdk` with PKCE OAuth.
+- **Provider**: [`frontend/src/components/auth/InsForgeAuthProvider.tsx`](frontend/src/components/auth/InsForgeAuthProvider.tsx) is a drop-in `useAuth()` replacement for Clerk.
+- **Backend verification**: [`backend/app/services/auth.py`](backend/app/services/auth.py) verifies the InsForge JWT against `{insforge_url}/api/auth/sessions/current` on every request. Every analyze/negotiate write is keyed to the InsForge user id.
+- **Storage**: managed Postgres provisioned through InsForge holds the full user, query, verdict, extracted-price, and draft history (17 Alembic migrations).
 
-### Tensorlake (Always-On track)
-- **What**: Stateful sandbox compute — isolated execution environments for agents
-- **How Faivri uses it**: Spawns background price monitors in Tensorlake sandboxes. These run on schedules, watch for price changes, and alert users when a deal drops into fair range. The monitor remembers what it saw across invocations.
-- **API**: `POST /api/v1/tensorlake/monitors`, `GET /api/v1/tensorlake/monitors`
-- **Env vars**: `TENSORLAKE_API_KEY`, `TENSORLAKE_API_URL`
+### Hyperspell + Tensorlake (next track, scaffolded)
+[`backend/app/services/hyperspell.py`](backend/app/services/hyperspell.py) and [`backend/app/services/tensorlake.py`](backend/app/services/tensorlake.py) are wired and exposed at `/api/v1/hyperspell/*` and `/api/v1/tensorlake/*`. They are **scaffolded but not load-bearing for the Ship It demo** — they degrade to deterministic stubs when keys are unset. Roadmap is in [docs/roadmap.md](docs/roadmap.md).
 
-## Quick Start
+## Run locally
 
 ```bash
-# Backend
+# Backend (FastAPI on :8008)
 cd backend
-cp .env.example .env   # fill in API keys
+cp .env.example .env                 # fill TAVILY_API_KEY, NIA_API_KEY, INSFORGE_*
+python -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
-uvicorn app.main:app --reload
+alembic upgrade head
+uvicorn app.main:app --host 127.0.0.1 --port 8008 --reload
 
-# Frontend
-cd frontend
-cp .env.local.example .env.local   # fill in InsForge + API URLs
+# Frontend (Next.js on :3000)
+cd ../frontend
+cp .env.local.example .env.local     # fill NEXT_PUBLIC_INSFORGE_URL + KEY, API URL
 npm install
 npm run dev
 ```
 
-## API Endpoints
+Sanity check: `curl http://127.0.0.1:8008/integrations` should report `nia.live: true` and `insforge.live: true`.
 
-| Method | Path | Description |
-|--------|------|-------------|
-| POST | `/api/v1/analyze` | Analyze a price quote for fairness |
-| POST | `/api/v1/negotiate` | Generate negotiation strategy |
-| POST | `/api/v1/messages/draft` | Draft a seller reply |
-| POST | `/api/v1/nia/search` | Search Nia for pricing context |
-| POST | `/api/v1/hyperspell/memories` | Store negotiation memory |
-| POST | `/api/v1/hyperspell/query` | Query past negotiations |
-| POST | `/api/v1/tensorlake/monitors` | Create background price monitor |
-| GET | `/api/v1/tensorlake/monitors` | List active monitors |
-| GET | `/integrations` | Check which sponsor integrations are live |
+## API surface
 
-## Fallback Mode
+| Method | Path | Auth | Purpose |
+|--------|------|------|---------|
+| POST | `/api/v1/analyze` | InsForge JWT | Run the full NiaAgent + fair-range + verdict pipeline |
+| POST | `/api/v1/negotiate` | InsForge JWT | Generate a strategy + draft reply for a verdict |
+| POST | `/api/v1/messages/draft` | InsForge JWT | Re-draft a reply with a different tone |
+| POST | `/api/v1/nia/search` | optional | Raw Nia `/v2/query` passthrough |
+| GET  | `/integrations` | none | Honest live/dry-run status per sponsor |
 
-All sponsor integrations degrade gracefully when API keys are absent:
-- **Nia**: Returns simulated market intelligence
-- **Hyperspell**: Returns simulated negotiation memories
-- **Tensorlake**: Returns simulated price monitors
+## What we will NOT do
 
-The `/integrations` endpoint honestly reports which sponsors are live based on key configuration — no fake "Powered by" badges.
+- **No LLM-picked dollar numbers.** Prices are extracted by regex from Tavily/Nia content, then aggregated with trust-weighted statistics in plain Python. The LLM only writes narrative around numbers it never chose.
+- **No fake "powered by" badges.** `/integrations` is the source of truth. If a sponsor's key is missing, the UI says so.
 
-## Hackathon Credits
+## Hackathon credits
 
-| Sponsor | How to access |
-|---------|---------------|
+| Sponsor | Access |
+|---------|--------|
 | Nia | Code `NIAHACK` at app.trynia.ai → Billing |
 | InsForge | $100 credits at insforge.dev/promo/NIA |
-| Tensorlake | Free access on May 9th |
-| Hyperspell | Free access on May 9th |
-| Vercel | Deploy with zero config |
+| Tensorlake | Free access on May 9 |
+| Hyperspell | Free access on May 9 |
