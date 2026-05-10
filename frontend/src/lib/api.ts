@@ -201,6 +201,27 @@ async function handleErrorResponse(res: Response): Promise<never> {
   throw new ApiError(res.status, friendly, rawDetail, requestId, body)
 }
 
+async function _refreshInsforgeToken(): Promise<boolean> {
+  try {
+    const { insforge } = await import('@/lib/insforge')
+    const { data, error } = await insforge.auth.refreshSession()
+    if (error || !data) return false
+    // After refresh, extract the new token and persist it
+    const headers = insforge.getHttpClient().getHeaders()
+    const authHeader = headers.Authorization || headers.authorization
+    if (authHeader) {
+      const token = authHeader.replace(/^Bearer\s+/i, '')
+      if (token) {
+        setPersistedToken(token)
+        return true
+      }
+    }
+    return false
+  } catch {
+    return false
+  }
+}
+
 async function request<T>(path: string, options?: RequestInit): Promise<T> {
   const authH = await authHeaders()
   let res: Response
@@ -220,6 +241,33 @@ async function request<T>(path: string, options?: RequestInit): Promise<T> {
       netErr instanceof Error ? netErr.message : 'network error',
       null,
     )
+  }
+
+  // Auto-refresh on 401: try to refresh the InsForge token and retry once
+  if (res.status === 401) {
+    const refreshed = await _refreshInsforgeToken()
+    if (refreshed) {
+      const newAuthH = await authHeaders()
+      try {
+        const retryRes = await fetch(`${API_URL}${path}`, {
+          headers: {
+            'Content-Type': 'application/json',
+            ...newAuthH,
+            ...options?.headers,
+          },
+          ...options,
+        })
+        if (!retryRes.ok) await handleErrorResponse(retryRes)
+        return retryRes.json()
+      } catch (netErr: unknown) {
+        throw new ApiError(
+          0,
+          `Can't reach the Faivri API. Check your internet connection and try again.${SUPPORT_HINT}`,
+          netErr instanceof Error ? netErr.message : 'network error',
+          null,
+        )
+      }
+    }
   }
 
   if (!res.ok) await handleErrorResponse(res)
@@ -243,6 +291,30 @@ async function uploadRequest<T>(path: string, formData: FormData): Promise<T> {
       netErr instanceof Error ? netErr.message : 'network error',
       null,
     )
+  }
+
+  // Auto-refresh on 401 for upload requests too
+  if (res.status === 401) {
+    const refreshed = await _refreshInsforgeToken()
+    if (refreshed) {
+      const newAuthH = await authHeaders()
+      try {
+        const retryRes = await fetch(`${API_URL}${path}`, {
+          method: 'POST',
+          headers: { ...newAuthH },
+          body: formData,
+        })
+        if (!retryRes.ok) await handleErrorResponse(retryRes)
+        return retryRes.json()
+      } catch (netErr: unknown) {
+        throw new ApiError(
+          0,
+          `Can't reach the Faivri API. Check your internet connection and try again.${SUPPORT_HINT}`,
+          netErr instanceof Error ? netErr.message : 'network error',
+          null,
+        )
+      }
+    }
   }
 
   if (!res.ok) await handleErrorResponse(res)

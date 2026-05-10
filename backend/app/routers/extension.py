@@ -19,6 +19,7 @@ break schema resolution at route-registration time.
 """
 
 import ipaddress
+from app.services.db_uuid import new_uuid, to_db_uuid
 import logging
 import re
 import socket
@@ -601,7 +602,7 @@ async def cancel_listing_watch(
     user_id: str = Depends(require_user_id),
 ):
     res = await db.execute(
-        select(ListingWatch).where(ListingWatch.id == str(watch_id))
+        select(ListingWatch).where(ListingWatch.id == to_db_uuid(watch_id))
     )
     watch = res.scalar_one_or_none()
     if not watch or str(watch.user_id) != user_id:

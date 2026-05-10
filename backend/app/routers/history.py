@@ -1,6 +1,7 @@
 """GET /api/v1/history — User query history and savings."""
 
 import logging
+from app.services.db_uuid import new_uuid, to_db_uuid
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Request
@@ -138,7 +139,7 @@ async def get_query_detail(
 ):
     """Get full verdict details for a query owned by the current user."""
     # SQLite stores UUIDs as strings — must coerce the UUID param to str
-    qid = str(query_id)
+    qid = to_db_uuid(query_id)
     result = await db.execute(
         select(QueryModel).where(
             QueryModel.id == qid,

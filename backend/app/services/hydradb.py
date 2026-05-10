@@ -27,6 +27,7 @@ is more durable than scattering memory writes across every router.
 from __future__ import annotations
 
 import logging
+from app.services.db_uuid import new_uuid, to_db_uuid
 from dataclasses import dataclass
 from datetime import datetime
 from typing import Any, Optional
@@ -163,20 +164,20 @@ async def read_session(
     poke at multiple tables to assemble a memory snapshot.
     """
     q = (await db.execute(
-        select(QueryModel).where(QueryModel.id == str(query_id))
+        select(QueryModel).where(QueryModel.id == to_db_uuid(query_id))
     )).scalar_one_or_none()
     if q is None:
         return None
 
     counters = (await db.execute(
         select(CounterOffer)
-        .where(CounterOffer.query_id == str(query_id))
+        .where(CounterOffer.query_id == to_db_uuid(query_id))
         .order_by(CounterOffer.created_at.asc())
     )).scalars().all()
 
     convos = (await db.execute(
         select(NegotiationConversation)
-        .where(NegotiationConversation.query_id == str(query_id))
+        .where(NegotiationConversation.query_id == to_db_uuid(query_id))
         .order_by(desc(NegotiationConversation.updated_at))
         .limit(1)
     )).scalars().all()

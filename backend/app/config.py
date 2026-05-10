@@ -3,7 +3,10 @@ from pydantic_settings import BaseSettings
 
 
 class Settings(BaseSettings):
-    database_url: str = "postgresql+asyncpg://localhost:5432/faircheck"
+    # InsForge managed Postgres (primary). Falls back to local SQLite when empty.
+    insforge_database_url: str = ""
+    # Legacy/fallback database URL. Used when insforge_database_url is not set.
+    database_url: str = "sqlite+aiosqlite:///./faivri_hack.db"
     anthropic_api_key: str = ""
     openai_api_key: str = ""
     tavily_api_key: str = ""

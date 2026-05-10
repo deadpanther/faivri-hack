@@ -1,8 +1,15 @@
 import uuid as _uuid
 
 def _uuid_str():
-    """Return a UUID as string (SQLite-safe)."""
-    return str(_uuid.uuid4())
+    """Return a new UUID value appropriate for the active database.
+
+    - SQLite: returns str(UUID) — SQLite can't bind uuid.UUID parameters.
+    - Postgres: returns uuid.UUID — native PG_UUID column type.
+    """
+    from app.config import settings as _s
+    _effective = _s.insforge_database_url or _s.database_url
+    u = _uuid.uuid4()
+    return str(u) if _effective.startswith("sqlite") else u
 from datetime import datetime
 
 from sqlalchemy import (
@@ -42,8 +49,10 @@ class _UUIDString(TypeDecorator):
 try:
     from sqlalchemy.dialects.postgresql import JSONB as _JSONB
     from app.config import settings
-    _JSON = _JSONB if not settings.database_url.startswith("sqlite") else JSON
-    if settings.database_url.startswith("sqlite"):
+    _effective_url = settings.insforge_database_url or settings.database_url
+    _is_sqlite = _effective_url.startswith("sqlite")
+    _JSON = _JSONB if not _is_sqlite else JSON
+    if _is_sqlite:
         def _UUID(**kwargs):
             """SQLite-compatible UUID: accepts UUID or str, stores as 36-char string."""
             return _UUIDString()
@@ -62,7 +71,7 @@ class Base(DeclarativeBase):
 
 # Enums: PG_ENUM for Postgres, String for SQLite
 from app.config import settings as _settings
-_use_pg_enum = not _settings.database_url.startswith("sqlite")
+_use_pg_enum = not (_settings.insforge_database_url or _settings.database_url).startswith("sqlite")
 
 if _use_pg_enum:
     domain_enum = PG_ENUM("auto", "medical", "home", "legal", "retail", name="domain_type", create_type=True)

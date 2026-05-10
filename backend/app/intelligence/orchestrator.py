@@ -19,6 +19,7 @@ fabrication.
 """
 
 import logging
+from app.services.db_uuid import new_uuid, to_db_uuid
 import uuid
 from datetime import datetime
 
@@ -383,7 +384,7 @@ async def _store_query(
 ) -> str:
     """Persist the query and verdict."""
 
-    query_id = str(uuid.uuid4())
+    query_id = new_uuid()
 
     db_query = Query(
         id=query_id,

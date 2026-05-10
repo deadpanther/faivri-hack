@@ -1,6 +1,7 @@
 """Vehicle profiles + predictive maintenance."""
 
 import logging
+from app.services.db_uuid import new_uuid, to_db_uuid
 import uuid
 from datetime import datetime
 from typing import Optional
@@ -90,7 +91,7 @@ async def create_vehicle(
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc))
     vehicle = Vehicle(
-        id=str(uuid.uuid4()),
+        id=new_uuid(),
         user_id=user_id,
         make=req.make,
         model=req.model,
@@ -114,7 +115,7 @@ async def get_maintenance_schedule(
     """Get predictive maintenance schedule for a vehicle owned by the current user."""
     result = await db.execute(
         select(Vehicle).where(
-            Vehicle.id == str(vehicle_id),
+            Vehicle.id == to_db_uuid(vehicle_id),
             Vehicle.user_id == user_id,
         )
     )

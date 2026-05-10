@@ -33,9 +33,10 @@ class RequestIdMiddleware(BaseHTTPMiddleware):
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # For hackathon SQLite deployment: auto-create tables if they don't exist.
-    # Production uses Alembic migrations.
-    if settings.database_url.startswith("sqlite"):
+    # For SQLite fallback: auto-create tables if they don't exist.
+    # InsForge Postgres tables are created via CLI; production uses Alembic.
+    _effective_url = settings.insforge_database_url or settings.database_url
+    if _effective_url.startswith("sqlite"):
         from app.models.db import Base
         async with engine.begin() as conn:
             await conn.run_sync(Base.metadata.create_all)

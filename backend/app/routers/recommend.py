@@ -1,6 +1,7 @@
 """GET /api/v1/recommend/{query_id} — Personalized next-step recommendations."""
 
 import logging
+from app.services.db_uuid import new_uuid, to_db_uuid
 from typing import Optional
 from uuid import UUID
 
@@ -46,7 +47,7 @@ async def recommend(
 ):
     """Get personalized recommendations based on a completed analysis."""
     result = await db.execute(
-        select(QueryModel).where(QueryModel.id == str(query_id))
+        select(QueryModel).where(QueryModel.id == to_db_uuid(query_id))
     )
     query = result.scalar_one_or_none()
     if not query:

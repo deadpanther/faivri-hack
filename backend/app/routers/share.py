@@ -17,6 +17,7 @@ the same payload to render the social preview image.
 """
 
 import logging
+from app.services.db_uuid import new_uuid, to_db_uuid
 import secrets
 from datetime import datetime, timedelta
 from typing import Optional
@@ -156,7 +157,7 @@ async def _existing_token_for(
     if kind == "query":
         stmt = select(ShareToken).where(
             ShareToken.kind == "query",
-            ShareToken.query_id == str(record_id),
+            ShareToken.query_id == to_db_uuid(record_id),
             ShareToken.revoked_at.is_(None),
         )
     else:
@@ -194,7 +195,7 @@ async def create_share(
     """
     if req.kind == "query":
         result = await db.execute(
-            select(QueryModel).where(QueryModel.id == str(req.record_id))
+            select(QueryModel).where(QueryModel.id == to_db_uuid(req.record_id))
         )
         q = result.scalar_one_or_none()
         if q is None:
@@ -204,7 +205,7 @@ async def create_share(
         owner_clerk_id = str(q.user_id) if q.user_id else None
     else:  # purchase
         result = await db.execute(
-            select(PurchaseAnalysis).where(PurchaseAnalysis.id == str(req.record_id))
+            select(PurchaseAnalysis).where(PurchaseAnalysis.id == to_db_uuid(req.record_id))
         )
         p = result.scalar_one_or_none()
         if p is None:
@@ -274,7 +275,7 @@ async def get_share(
 
     if share.kind == "query" and share.query_id is not None:
         q_result = await db.execute(
-            select(QueryModel).where(QueryModel.id == str(share.query_id))
+            select(QueryModel).where(QueryModel.id == to_db_uuid(share.query_id))
         )
         q = q_result.scalar_one_or_none()
         if q is None:
@@ -282,7 +283,7 @@ async def get_share(
         payload = _build_query_payload(q, share.view_count + 1)
     elif share.kind == "purchase" and share.purchase_id is not None:
         p_result = await db.execute(
-            select(PurchaseAnalysis).where(PurchaseAnalysis.id == str(share.purchase_id))
+            select(PurchaseAnalysis).where(PurchaseAnalysis.id == to_db_uuid(share.purchase_id))
         )
         p = p_result.scalar_one_or_none()
         if p is None:
@@ -296,7 +297,7 @@ async def get_share(
     try:
         await db.execute(
             update(ShareToken)
-            .where(ShareToken.id == str(share.id))
+            .where(ShareToken.id == to_db_uuid(share.id))
             .values(view_count=ShareToken.view_count + 1)
         )
         await db.commit()

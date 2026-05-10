@@ -1,6 +1,7 @@
 """POST /api/v1/analyze — Core analysis endpoints (text, image, voice, purchase)."""
 
 import base64
+from app.services.db_uuid import new_uuid, to_db_uuid
 import logging
 import uuid
 from datetime import datetime
@@ -368,18 +369,18 @@ async def get_providers():
     }
 
 
-def _coerce_profile_uuid(user_id: str | None) -> str | None:
-    """Return user_id as a string if it's valid UUID-shaped, else None.
+def _coerce_profile_uuid(user_id: str | None):
+    """Return user_id in the type the active DB expects.
 
-    SQLite cannot bind uuid.UUID parameters — all IDs must be plain strings.
-    We validate that the string is UUID-shaped so we don't persist garbage,
-    but return the original string rather than a uuid.UUID object.
+    - SQLite: str (SQLite can't bind uuid.UUID)
+    - Postgres: uuid.UUID (native PG_UUID column)
+    Returns None if user_id is empty or not UUID-shaped.
     """
     if not user_id:
         return None
     try:
         uuid.UUID(user_id)  # validate shape
-        return user_id       # return as string for SQLite compat
+        return to_db_uuid(user_id)
     except ValueError:
         return None
 
@@ -404,7 +405,7 @@ async def _persist_purchase_analysis(
     Persistence errors are re-raised; the caller handles them as a 500 so a
     silent DB failure can't strand the client with an un-linkable result.
     """
-    analysis_id = str(uuid.uuid4())
+    analysis_id = new_uuid()
     row = PurchaseAnalysis(
         id=analysis_id,
         user_id=_coerce_profile_uuid(user_id),

@@ -25,6 +25,7 @@ Design:
 from __future__ import annotations
 
 import logging
+from app.services.db_uuid import new_uuid, to_db_uuid
 import uuid
 from datetime import datetime
 from typing import Optional
@@ -100,7 +101,7 @@ async def touch_and_enforce(
                 raise SessionRevokedByCap()
 
             session = ProfileSession(
-                id=str(uuid.uuid4()),
+                id=new_uuid(),
                 user_id=user_id,
                 clerk_session_id=clerk_session_id,
                 user_agent=(user_agent or "")[:500] or None,
