@@ -1,0 +1,1319 @@
+@import "tailwindcss";
+
+/* ══════════════════════════════════════════
+   Faivri Design System — Notion-Inspired Light Theme
+   Warm neutrals, flat surfaces, restrained color, functional motion.
+   ══════════════════════════════════════════ */
+
+:root {
+  color-scheme: light;
+
+  /* ── Brand ── */
+  --black: #000000;
+  --white: #FFFFFF;
+
+  /* ── Warm neutrals (Notion-style) ── */
+  --warm-bg: #FFFFFF;
+  --warm-bg-secondary: #F7F6F3;
+  --warm-bg-tertiary: #EFEDEA;
+  --warm-bg-hover: #F1F0ED;
+  --warm-bg-active: #E9E8E4;
+
+  /* ── Text (warm brownish-black, not pure black) ── */
+  --text-1: #37352F;
+  --text-2: #6B6B6B;
+  --text-3: #9B9A97;
+  --text-4: #B4B4B0;
+
+  /* ── Borders (subtle, warm) ── */
+  --border: rgba(55, 53, 47, 0.09);
+  --border-strong: rgba(55, 53, 47, 0.16);
+  --border-hover: rgba(55, 53, 47, 0.24);
+
+  /* ── Semantic: Verdicts ── */
+  --red: #EB5757;
+  --red-light: #FFE2DD;
+  --red-text: #C4554D;
+
+  --amber: #D9730D;
+  --amber-light: #FADEC9;
+  --amber-text: #CC7B2E;
+
+  --green: #0F7B6C;
+  --green-light: #DBEDDB;
+  --green-text: #448361;
+
+  --blue: #2383E2;
+  --blue-light: #D3E5EF;
+  --blue-text: #2E7CBA;
+
+  --purple: #9A6DD7;
+  --purple-light: #E8DEEE;
+
+  /* ── Fonts ── */
+  --font-body: var(--font-body-next, "Inter"), -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+  --font-display: var(--font-display-next, "Plus Jakarta Sans"), var(--font-body-next, "Inter"), -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+  --font-mono: "SFMono-Regular", Menlo, Consolas, "Liberation Mono", monospace;
+
+  /* ── Type scale ── */
+  --type-12: 0.75rem;
+  --type-14: 0.875rem;
+  --type-16: 1rem;
+  --type-18: 1.125rem;
+  --type-20: 1.25rem;
+  --type-24: 1.5rem;
+  --type-32: 2rem;
+  --type-40: 2.5rem;
+  --type-48: 3rem;
+  --type-72: 4.5rem;
+
+  /* ── Spacing (4px base) ── */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+  --space-8: 40px;
+  --space-10: 48px;
+  --space-12: 64px;
+  --space-16: 80px;
+
+  /* ── Radius (Notion-tight) ── */
+  --radius-sm: 3px;
+  --radius-md: 6px;
+  --radius-lg: 8px;
+  --radius-xl: 12px;
+  --radius-2xl: 16px;
+  --radius-full: 999px;
+
+  /* ── Shadows (minimal, Notion-style) ── */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.04);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08);
+  --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.12);
+  --shadow-xl: 0 16px 48px rgba(0, 0, 0, 0.16);
+  --shadow-ring: 0 0 0 2px rgba(35, 131, 226, 0.35);
+
+  /* ── Motion (functional only) ── */
+  --ease-out: cubic-bezier(0.25, 0.1, 0.25, 1);
+  --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+  --dur-fast: 100ms;
+  --dur-normal: 200ms;
+  --dur-slow: 300ms;
+
+  /* ── Layout ── */
+  --container-max: 1200px;
+  --section-x: clamp(16px, 4vw, 48px);
+  --section-y: clamp(40px, 8vw, 80px);
+
+  /* Height of the floating top-nav pill plus the breathing room above it.
+     Drives <main> top-padding in app/layout.tsx so content sits clear of
+     the nav on every breakpoint. md+ adds extra room for the taller pill.
+     Mobile pill is 58px tall + 8px breathing room → 66px floor; desktop
+     uses 88px (78px pill + 20px breathing room). */
+  --nav-clearance: 66px;
+
+  /* ── Legacy mappings (for components that reference old tokens) ── */
+  --accent: #2383E2;
+  --accent-bright: #2383E2;
+  --accent-dim: #0077D4;
+  --accent-wash: rgba(35, 131, 226, 0.08);
+  --accent-glow: rgba(35, 131, 226, 0.25);
+  --green-dim: #0F7B6C;
+  --green-wash: rgba(15, 123, 108, 0.08);
+  --red-dim: #EB5757;
+  --red-wash: rgba(235, 87, 87, 0.08);
+  --amber-dim: #D9730D;
+  --amber-wash: rgba(217, 115, 13, 0.08);
+  --border-accent: rgba(35, 131, 226, 0.35);
+  --border-success: rgba(15, 123, 108, 0.3);
+  --border-danger: rgba(235, 87, 87, 0.3);
+  --color-neutral-100: #F7F6F3;
+  --surface-up: #F7F6F3;
+  --border-up: rgba(55, 53, 47, 0.16);
+  --bg: #FFFFFF;
+}
+
+/* ══════════════════════════════════════════
+   BASE
+   ══════════════════════════════════════════ */
+
+html,
+body {
+  min-height: 100%;
+  overflow-x: clip;
+  /* Prevent horizontal scroll from any single rogue element on mobile —
+     long URLs, OG cards, animated halos all leak past the viewport edge
+     otherwise. */
+  max-width: 100vw;
+}
+
+html {
+  /* Prevent iOS Safari from auto-resizing text in landscape */
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--warm-bg);
+  color: var(--text-1);
+  font-family: var(--font-body);
+  font-size: var(--type-16);
+  line-height: 1.625;
+  letter-spacing: -0.003em;
+  -webkit-font-smoothing: antialiased;
+  -webkit-tap-highlight-color: transparent;
+  /* Honor home-indicator + notches in installed PWA mode */
+  padding-left: env(safe-area-inset-left, 0px);
+  padding-right: env(safe-area-inset-right, 0px);
+}
+
+/* When the bottom nav is mounted (signed-in mobile + PWA), every page's
+   <main> needs to clear its height so content isn't hidden behind it.
+   Pages no longer need to manually set pb-20. Uses :has() — supported on
+   Safari 15.4+, Chrome 105+, Firefox 121+ — all the browsers we support
+   for PWA install. */
+@media (max-width: 767px) {
+  body:has([data-bottom-nav]) main {
+    padding-bottom: calc(72px + env(safe-area-inset-bottom, 0px));
+  }
+}
+
+/* iOS Safari zooms inputs whose font-size < 16px on focus.
+   Force at least 16px on every interactive form field to prevent the jump. */
+input,
+select,
+textarea {
+  font-size: max(16px, 1rem);
+}
+
+/* Make every clickable surface meet the 44x44 px touch-target floor on
+   touch devices, without disturbing dense desktop UIs. */
+@media (hover: none) and (pointer: coarse) {
+  button,
+  a[role='button'],
+  [data-touch-target='true'] {
+    min-height: 44px;
+  }
+}
+
+/* ══════════════════════════════════════════
+   LAYOUT
+   ══════════════════════════════════════════ */
+
+.ui-container {
+  width: min(100% - calc(var(--section-x) * 2), var(--container-max));
+  margin-inline: auto;
+}
+
+.ui-section {
+  padding-inline: var(--section-x);
+  padding-block: var(--section-y);
+}
+
+.section-gap {
+  margin-top: var(--space-10);
+}
+
+.section-gap-sm {
+  margin-top: var(--space-6);
+}
+
+/* ══════════════════════════════════════════
+   TYPOGRAPHY
+   ══════════════════════════════════════════ */
+
+.font-display {
+  font-family: var(--font-display);
+}
+
+.ui-title-display {
+  font-family: var(--font-display);
+  font-size: clamp(2.5rem, 6vw, 4.5rem);
+  line-height: 1.1;
+  letter-spacing: -0.03em;
+  font-weight: 700;
+  color: var(--text-1);
+  text-wrap: balance;
+}
+
+.ui-title-section {
+  font-family: var(--font-display);
+  font-size: clamp(1.5rem, 4vw, 2.5rem);
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+  font-weight: 700;
+  color: var(--text-1);
+  text-wrap: balance;
+}
+
+.ui-lead {
+  max-width: 64ch;
+  font-size: var(--type-18);
+  line-height: 1.7;
+  color: var(--text-2);
+}
+
+.ui-caption {
+  font-size: var(--type-12);
+  font-weight: 600;
+  color: var(--text-3);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+/* ── Text gradients (kept subtle for headings) ── */
+.text-gradient-hero {
+  background: linear-gradient(135deg, #37352F 0%, #6B6B6B 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.text-gradient-red {
+  color: var(--red-text);
+}
+
+.text-gradient-green {
+  color: var(--green-text);
+}
+
+/* ══════════════════════════════════════════
+   SURFACES — Flat, no glass, no blur
+   ══════════════════════════════════════════ */
+
+.glass,
+.glass-soft,
+.glass-mid,
+.ui-surface {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  background: var(--warm-bg);
+  box-shadow: var(--shadow-sm);
+  position: relative;
+}
+
+/* Remove the pseudo-element overlays from old glass system */
+.glass::before,
+.glass-soft::before,
+.glass-mid::before,
+.ui-surface::before {
+  display: none;
+}
+
+.glass-strong,
+.ui-surface-strong {
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-2xl);
+  background: var(--warm-bg);
+  box-shadow: var(--shadow-md);
+  position: relative;
+}
+
+.glass-strong::before,
+.ui-surface-strong::before {
+  display: none;
+}
+
+.ui-stat {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--warm-bg-secondary);
+  padding: var(--space-4);
+}
+
+/* ══════════════════════════════════════════
+   BUTTONS
+   ══════════════════════════════════════════ */
+
+.ui-button-primary,
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  border: none;
+  border-radius: var(--radius-md);
+  background: var(--black);
+  color: var(--white);
+  font-family: var(--font-body);
+  font-size: var(--type-14);
+  font-weight: 600;
+  line-height: 1;
+  padding: 10px 18px;
+  cursor: pointer;
+  transition: background var(--dur-fast) var(--ease-out),
+              transform var(--dur-fast) var(--ease-out);
+}
+
+.ui-button-primary:hover:not(:disabled),
+.btn-primary:hover:not(:disabled) {
+  background: #333333;
+}
+
+.ui-button-primary:active:not(:disabled),
+.btn-primary:active:not(:disabled) {
+  transform: scale(0.98);
+  background: #1A1A1A;
+}
+
+.ui-button-primary:focus-visible,
+.btn-primary:focus-visible {
+  outline: none;
+  box-shadow: var(--shadow-ring);
+}
+
+.ui-button-primary:disabled,
+.btn-primary:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.ui-button-secondary,
+.btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-md);
+  background: var(--warm-bg);
+  color: var(--text-1);
+  font-family: var(--font-body);
+  font-size: var(--type-14);
+  font-weight: 500;
+  line-height: 1;
+  padding: 10px 18px;
+  cursor: pointer;
+  transition: background var(--dur-fast) var(--ease-out),
+              border-color var(--dur-fast) var(--ease-out);
+}
+
+.ui-button-secondary:hover:not(:disabled),
+.btn-secondary:hover:not(:disabled) {
+  background: var(--warm-bg-secondary);
+  border-color: var(--border-hover);
+}
+
+.ui-button-secondary:focus-visible,
+.btn-secondary:focus-visible {
+  outline: none;
+  box-shadow: var(--shadow-ring);
+}
+
+.btn-ghost {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  border: 1px solid transparent;
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: var(--text-2);
+  font-size: var(--type-14);
+  font-weight: 500;
+  padding: 8px 12px;
+  cursor: pointer;
+  transition: background var(--dur-fast) var(--ease-out);
+}
+
+.btn-ghost:hover {
+  background: rgba(55, 53, 47, 0.06);
+  color: var(--text-1);
+}
+
+/* ══════════════════════════════════════════
+   CHIPS, CONTROLS, KICKERS
+   ══════════════════════════════════════════ */
+
+.ui-kicker {
+  display: none !important;
+}
+
+.ui-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-full);
+  background: var(--warm-bg-secondary);
+  color: var(--text-2);
+  font-size: var(--type-12);
+  font-weight: 500;
+  padding: 3px 10px;
+}
+
+.ui-control-group,
+.mode-switcher {
+  display: inline-flex;
+  gap: 2px;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-lg);
+  background: var(--warm-bg-secondary);
+  padding: 3px;
+}
+
+.ui-control-group button,
+.mode-switcher button {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  border: 0;
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: var(--text-3);
+  font-size: var(--type-12);
+  font-weight: 600;
+  padding: 6px 12px;
+  cursor: pointer;
+  transition: background var(--dur-fast) var(--ease-out),
+              color var(--dur-fast) var(--ease-out);
+}
+
+.ui-control-group button:hover,
+.mode-switcher button:hover {
+  color: var(--text-1);
+}
+
+.ui-control-group button.active,
+.mode-switcher button.active {
+  background: var(--warm-bg);
+  color: var(--text-1);
+  box-shadow: var(--shadow-sm);
+}
+
+/* ══════════════════════════════════════════
+   SEMANTIC CARDS — Verdict colors on light bg
+   ══════════════════════════════════════════ */
+
+.card-accent {
+  border: 1px solid rgba(35, 131, 226, 0.2);
+  border-radius: var(--radius-xl);
+  background: var(--blue-light);
+  box-shadow: var(--shadow-sm);
+}
+
+.card-danger {
+  border: 1px solid rgba(235, 87, 87, 0.2);
+  border-radius: var(--radius-xl);
+  background: var(--red-light);
+  box-shadow: var(--shadow-sm);
+}
+
+.card-green {
+  border: 1px solid rgba(15, 123, 108, 0.2);
+  border-radius: var(--radius-xl);
+  background: var(--green-light);
+  box-shadow: var(--shadow-sm);
+}
+
+.card-warning {
+  border: 1px solid rgba(217, 115, 13, 0.2);
+  border-radius: var(--radius-xl);
+  background: var(--amber-light);
+  box-shadow: var(--shadow-sm);
+}
+
+.card-evidence {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--warm-bg-secondary);
+  box-shadow: var(--shadow-sm);
+}
+
+.card-action {
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-xl);
+  background: var(--warm-bg);
+  box-shadow: var(--shadow-sm);
+  transition: transform var(--dur-normal) var(--ease-out),
+              box-shadow var(--dur-normal) var(--ease-out);
+}
+
+.card-action:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
+}
+
+/* ══════════════════════════════════════════
+   LOADING
+   ══════════════════════════════════════════ */
+
+.skeleton {
+  position: relative;
+  overflow: hidden;
+  border-radius: var(--radius-md);
+  background: var(--warm-bg-tertiary);
+}
+
+.skeleton::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.6) 52%, transparent 100%);
+  transform: translateX(-100%);
+  animation: skeleton-shimmer 1.5s ease-in-out infinite;
+}
+
+@keyframes skeleton-shimmer {
+  to { transform: translateX(100%); }
+}
+
+.skeleton-text { height: 14px; }
+.skeleton-title { height: 24px; width: 60%; }
+.skeleton-block { height: 84px; }
+
+/* ══════════════════════════════════════════
+   TOAST
+   ══════════════════════════════════════════ */
+
+.toast-container {
+  position: fixed;
+  left: 50%;
+  bottom: 76px;
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  transform: translateX(-50%);
+}
+
+@media (min-width: 768px) {
+  .toast-container { bottom: 28px; }
+}
+
+.toast {
+  max-width: 360px;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border-strong);
+  background: var(--warm-bg);
+  font-size: var(--type-14);
+  font-weight: 600;
+  text-align: center;
+  padding: var(--space-3) var(--space-4);
+  box-shadow: var(--shadow-lg);
+}
+
+.toast-success { color: var(--green-text); }
+.toast-error { color: var(--red-text); }
+.toast-info { color: var(--blue-text); }
+
+/* ══════════════════════════════════════════
+   FRESHNESS BADGE
+   ══════════════════════════════════════════ */
+
+.freshness-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border-radius: var(--radius-full);
+  font-size: var(--type-12);
+  font-weight: 600;
+  padding: 3px 10px;
+}
+
+.freshness-live {
+  background: var(--green-light);
+  border: 1px solid rgba(15, 123, 108, 0.25);
+  color: var(--green-text);
+}
+
+.freshness-live::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  border-radius: var(--radius-full);
+  background: var(--green);
+}
+
+.freshness-cached {
+  background: var(--amber-light);
+  border: 1px solid rgba(217, 115, 13, 0.25);
+  color: var(--amber-text);
+}
+
+.freshness-limited {
+  background: var(--red-light);
+  border: 1px solid rgba(235, 87, 87, 0.25);
+  color: var(--red-text);
+}
+
+/* ══════════════════════════════════════════
+   LOADING TIMELINE
+   ══════════════════════════════════════════ */
+
+.loading-timeline {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.timeline-step {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--type-14);
+}
+
+.timeline-step.pending { color: var(--text-4); }
+.timeline-step.active { color: var(--blue); }
+.timeline-step.completed { color: var(--green-text); }
+
+.timeline-dot {
+  width: 22px;
+  height: 22px;
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-full);
+  font-size: 11px;
+}
+
+.timeline-dot.pending {
+  border: 1px solid var(--border);
+  background: var(--warm-bg-secondary);
+}
+
+.timeline-dot.active {
+  border: 1px solid rgba(35, 131, 226, 0.3);
+  background: var(--blue-light);
+}
+
+.timeline-dot.completed {
+  border: 1px solid rgba(15, 123, 108, 0.3);
+  background: var(--green-light);
+}
+
+/* ══════════════════════════════════════════
+   AUDIT LOG
+   ══════════════════════════════════════════ */
+
+.audit-log {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--warm-bg);
+  font-family: var(--font-mono);
+}
+
+.audit-line {
+  display: grid;
+  grid-template-columns: 100px minmax(0, 1fr) 86px;
+  gap: 10px;
+  align-items: center;
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--border);
+}
+
+.audit-line:last-child { border-bottom: 0; }
+
+/* ══════════════════════════════════════════
+   SAVINGS & CELEBRATION
+   ══════════════════════════════════════════ */
+
+.savings-hero {
+  text-align: center;
+  padding: var(--space-6) var(--space-4);
+}
+
+.savings-amount {
+  font-family: var(--font-display);
+  font-size: clamp(2.4rem, 8vw, 4.5rem);
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: -0.03em;
+}
+
+.savings-amount.savings-overcharge { color: var(--red); }
+.savings-amount.savings-high { color: var(--amber); }
+.savings-amount.savings-fair { color: var(--green); }
+
+.celebration-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(8px);
+}
+
+.celebration-card {
+  text-align: center;
+  max-width: 480px;
+  padding: var(--space-8) var(--space-6);
+}
+
+.confetti-canvas {
+  position: fixed;
+  inset: 0;
+  z-index: 61;
+  pointer-events: none;
+}
+
+.level-progress {
+  height: 6px;
+  border-radius: var(--radius-full);
+  background: var(--warm-bg-tertiary);
+  overflow: hidden;
+}
+
+.level-progress-fill {
+  height: 100%;
+  border-radius: var(--radius-full);
+  background: var(--black);
+  transition: width var(--dur-slow) var(--ease-out);
+}
+
+.streak-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  border: 1px solid rgba(217, 115, 13, 0.25);
+  border-radius: var(--radius-full);
+  background: var(--amber-light);
+  color: var(--amber-text);
+  font-size: var(--type-12);
+  font-weight: 600;
+  padding: 4px 12px;
+}
+
+.milestone-toast {
+  border: 1px solid rgba(15, 123, 108, 0.25);
+  border-radius: var(--radius-lg);
+  background: var(--green-light);
+  color: var(--green-text);
+  font-size: var(--type-14);
+  font-weight: 600;
+  padding: var(--space-3) var(--space-4);
+  text-align: center;
+}
+
+@keyframes counter-roll {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.counter-animate {
+  animation: counter-roll 0.5s var(--ease-out) forwards;
+}
+
+/* ── Outcome badges ── */
+
+.outcome-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  border-radius: var(--radius-full);
+  font-size: var(--type-12);
+  font-weight: 600;
+  padding: 5px 14px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.outcome-badge.negotiated {
+  background: var(--green-light);
+  border: 1px solid rgba(15, 123, 108, 0.25);
+  color: var(--green-text);
+}
+
+.outcome-badge.alternative {
+  background: var(--blue-light);
+  border: 1px solid rgba(35, 131, 226, 0.25);
+  color: var(--blue-text);
+}
+
+.outcome-badge.walkaway {
+  background: var(--amber-light);
+  border: 1px solid rgba(217, 115, 13, 0.25);
+  color: var(--amber-text);
+}
+
+/* ══════════════════════════════════════════
+   MICRO-INTERACTIONS & ANIMATION
+   ══════════════════════════════════════════ */
+
+.perspective-stack {
+  position: relative;
+}
+
+.perspective-stack::after {
+  display: none;
+}
+
+/* ── Card hover: subtle lift + shadow ── */
+.hover-lift {
+  transition: transform 0.25s cubic-bezier(0.25, 0.1, 0.25, 1),
+              box-shadow 0.25s cubic-bezier(0.25, 0.1, 0.25, 1),
+              border-color 0.25s cubic-bezier(0.25, 0.1, 0.25, 1);
+}
+
+.hover-lift:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-md);
+  border-color: var(--border-strong);
+}
+
+/* ── Interactive surface: hover glow for all glass cards ── */
+.glass,
+.glass-strong {
+  transition: box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.glass:hover {
+  box-shadow: var(--shadow-md);
+}
+
+.glass-strong:hover {
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+}
+
+/* ── Semantic cards: hover border intensifies ── */
+.card-danger,
+.card-green,
+.card-warning,
+.card-accent,
+.card-evidence {
+  transition: box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+.card-danger:hover,
+.card-green:hover,
+.card-warning:hover,
+.card-accent:hover {
+  box-shadow: var(--shadow-md);
+  transform: translateY(-1px);
+}
+
+/* ── Stat cards: subtle scale on hover ── */
+.ui-stat {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.ui-stat:hover {
+  transform: scale(1.02);
+  box-shadow: var(--shadow-sm);
+}
+
+/* ── Button glow: primary gets subtle shadow on hover ── */
+.ui-button-primary:hover:not(:disabled),
+.btn-primary:hover:not(:disabled) {
+  background: #333333;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.2);
+}
+
+/* ── Input focus animation ── */
+input:focus,
+select:focus,
+textarea:focus {
+  box-shadow: var(--shadow-ring);
+  transition: box-shadow 0.15s ease;
+}
+
+/* ── Link underline animation ── */
+a.animated-link {
+  position: relative;
+  text-decoration: none;
+}
+
+a.animated-link::after {
+  content: '';
+  position: absolute;
+  bottom: -1px;
+  left: 0;
+  width: 0;
+  height: 1px;
+  background: currentColor;
+  transition: width 0.25s cubic-bezier(0.25, 0.1, 0.25, 1);
+}
+
+a.animated-link:hover::after {
+  width: 100%;
+}
+
+/* ── Number pulse (for savings amount on load) ── */
+@keyframes number-pop {
+  0% { transform: scale(0.8); opacity: 0; }
+  60% { transform: scale(1.05); }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+.number-pop {
+  animation: number-pop 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+/* ── Gentle pulse for live indicators ── */
+@keyframes gentle-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+.pulse-gentle {
+  animation: gentle-pulse 2s ease-in-out infinite;
+}
+
+/* ── Checkmark draw animation ── */
+@keyframes check-draw {
+  to { stroke-dashoffset: 0; }
+}
+
+.check-animate {
+  stroke-dasharray: 20;
+  stroke-dashoffset: 20;
+  animation: check-draw 0.4s ease forwards 0.2s;
+}
+
+/* ── Badge entrance ── */
+@keyframes badge-in {
+  0% { transform: scale(0.7); opacity: 0; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+.badge-animate {
+  animation: badge-in 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+/* ── Smooth chip hover ── */
+.ui-chip {
+  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+
+.ui-chip:hover {
+  background: var(--warm-bg-tertiary);
+  border-color: var(--border-strong);
+  color: var(--text-1);
+}
+
+.safe-area-pb {
+  padding-bottom: max(8px, env(safe-area-inset-bottom));
+}
+
+/* ══════════════════════════════════════════
+   PWA STANDALONE MODE
+   Tweaks that only apply when the app is launched from the home screen
+   (display-mode: standalone). Browser tab still gets the marketing chrome.
+   ══════════════════════════════════════════ */
+
+@media (min-width: 768px) {
+  :root {
+    --nav-clearance: 88px;
+  }
+}
+
+@media (display-mode: standalone) {
+  /* No address bar to elastic-bounce against the top of <body>; killing
+     vertical overscroll keeps the floating nav from looking detached when
+     the user pulls down. */
+  body {
+    overscroll-behavior-y: none;
+    /* Disable text selection on app chrome (nav, buttons, tabs) by default
+       — installed apps shouldn't feel like a webpage. Inputs / textareas /
+       editable content are unblocked below. */
+    -webkit-user-select: none;
+    user-select: none;
+    /* Block pull-to-refresh — in a PWA it triggers a full reload that wipes
+       client state, which is jarring when launched from the home screen. */
+    overscroll-behavior-x: none;
+  }
+
+  input,
+  textarea,
+  [contenteditable='true'],
+  [data-allow-select='true'] {
+    -webkit-user-select: text;
+    user-select: text;
+  }
+
+  /* Footer is marketing-heavy (links to /pricing, /docs, brand chips).
+     Inside an installed app the user is already past the funnel — hide it
+     so they get a clean app-shell experience. */
+  footer[data-app-footer='true'] {
+    display: none;
+  }
+
+  /* PWA install CTAs are nonsensical inside the installed app. */
+  [data-pwa-install-cta='true'] {
+    display: none !important;
+  }
+
+  /* Top-nav floating pill loses its surrounding margin in standalone — it
+     should hug the status-bar area like a real app header. */
+  nav[data-top-nav] > div {
+    width: 100% !important;
+    max-width: none !important;
+  }
+
+  nav[data-top-nav] > div > div {
+    border-radius: 0 !important;
+    border-top: 0 !important;
+    border-left: 0 !important;
+    border-right: 0 !important;
+  }
+}
+
+/* ══════════════════════════════════════════
+   PREMIUM AURORA BACKDROP
+   ══════════════════════════════════════════ */
+
+@keyframes aurora-drift-a {
+  0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
+  50% { transform: translate3d(10%, 8%, 0) scale(1.08); }
+}
+
+@keyframes aurora-drift-b {
+  0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
+  50% { transform: translate3d(-10%, 6%, 0) scale(1.06); }
+}
+
+@keyframes aurora-drift-c {
+  0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
+  50% { transform: translate3d(3%, -8%, 0) scale(1.1); }
+}
+
+@keyframes aurora-grid-pan {
+  0% { background-position: 0 0; }
+  100% { background-position: 72px 72px; }
+}
+
+.aurora-backdrop {
+  pointer-events: none;
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  z-index: 0;
+}
+
+.aurora-orb {
+  position: absolute;
+  border-radius: 999px;
+  filter: blur(44px);
+  opacity: 0.8;
+}
+
+.aurora-orb-a {
+  left: -12%;
+  top: -24%;
+  width: 44%;
+  height: 64%;
+  animation: aurora-drift-a 16s ease-in-out infinite;
+}
+
+.aurora-orb-b {
+  right: -12%;
+  top: -20%;
+  width: 44%;
+  height: 62%;
+  animation: aurora-drift-b 18s ease-in-out infinite;
+}
+
+.aurora-orb-c {
+  left: 30%;
+  bottom: -34%;
+  width: 38%;
+  height: 62%;
+  animation: aurora-drift-c 20s ease-in-out infinite;
+}
+
+.aurora-grid {
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(to right, rgba(55, 53, 47, 0.06) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(55, 53, 47, 0.06) 1px, transparent 1px);
+  background-size: 56px 56px;
+  mask-image: radial-gradient(ellipse at center, black 28%, transparent 80%);
+  opacity: 0.28;
+  animation: aurora-grid-pan 24s linear infinite;
+}
+
+button:active:not(:disabled),
+a:active {
+  transform: scale(0.97);
+}
+
+:focus-visible {
+  outline: none;
+  box-shadow: var(--shadow-ring);
+}
+
+:focus:not(:focus-visible) {
+  outline: none;
+}
+
+/* ══════════════════════════════════════════
+   CLIP-PATH REVEALS
+   ══════════════════════════════════════════ */
+
+@keyframes clip-reveal-up {
+  from { clip-path: inset(100% 0 0 0); }
+  to { clip-path: inset(0 0 0 0); }
+}
+
+@keyframes clip-reveal-center {
+  from { clip-path: circle(0% at 50% 50%); }
+  to { clip-path: circle(75% at 50% 50%); }
+}
+
+@keyframes clip-reveal-left {
+  from { clip-path: inset(0 100% 0 0); }
+  to { clip-path: inset(0 0 0 0); }
+}
+
+.clip-up {
+  animation: clip-reveal-up 0.7s cubic-bezier(0.25, 0.1, 0.25, 1) forwards;
+}
+
+.clip-center {
+  animation: clip-reveal-center 0.8s cubic-bezier(0.25, 0.1, 0.25, 1) forwards;
+}
+
+.clip-left {
+  animation: clip-reveal-left 0.6s cubic-bezier(0.25, 0.1, 0.25, 1) forwards;
+}
+
+/* ── Text scramble mono style ── */
+.text-scramble {
+  font-family: var(--font-mono);
+  letter-spacing: 0.02em;
+}
+
+/* ── Stagger character animation ── */
+@keyframes char-in {
+  0% { opacity: 0; transform: translateY(8px) rotate(-3deg); filter: blur(2px); }
+  100% { opacity: 1; transform: translateY(0) rotate(0); filter: blur(0); }
+}
+
+.char-animate > span {
+  display: inline-block;
+  opacity: 0;
+  animation: char-in 0.4s cubic-bezier(0.25, 0.1, 0.25, 1) forwards;
+}
+
+/* ── Line reveal (for paragraphs appearing line by line) ── */
+@keyframes line-reveal {
+  from { opacity: 0; transform: translateY(14px); filter: blur(3px); }
+  to { opacity: 1; transform: translateY(0); filter: blur(0); }
+}
+
+.line-reveal {
+  opacity: 0;
+  animation: line-reveal 0.6s cubic-bezier(0.25, 0.1, 0.25, 1) forwards;
+}
+
+/* ── Divider grow ── */
+@keyframes divider-grow {
+  from { transform: scaleX(0); }
+  to { transform: scaleX(1); }
+}
+
+.divider-animate {
+  transform-origin: left;
+  animation: divider-grow 0.8s cubic-bezier(0.25, 0.1, 0.25, 1) forwards;
+}
+
+/* ── Subtle float (for hero elements) ── */
+@keyframes gentle-float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
+}
+
+.float-gentle {
+  animation: gentle-float 4s ease-in-out infinite;
+}
+
+/* ══════════════════════════════════════════
+   RESPONSIVE
+   ══════════════════════════════════════════ */
+
+@media (max-width: 900px) {
+  .ui-section {
+    padding-block: clamp(24px, 6vw, 48px);
+  }
+
+  .audit-line {
+    grid-template-columns: 70px minmax(0, 1fr);
+  }
+
+  .audit-line > :last-child {
+    display: none;
+  }
+}
+
+@media (max-width: 640px) {
+  :root {
+    /* Tighter horizontal padding on phones — `--section-x` floor was 16px
+       which is fine, but the header/cards inside often add their own px-5
+       on top, eating room. Trim the floor to 14px so cards have a touch
+       more breathing room without collapsing margins. */
+    --section-x: clamp(14px, 4vw, 28px);
+  }
+
+  /* Default surfaces have a 24px radius that visually overpowers tight
+     mobile viewports. Drop the 2xl variant to 16px on phones. */
+  .glass-strong,
+  .ui-surface-strong {
+    border-radius: var(--radius-xl);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.1s !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Google Translate widget
+   Attribution/branding is surfaced inside our LanguageDropdown component
+   ("Powered by Google Translate" + persistent badge when active), so the
+   inline gadget host stays offscreen. The top banner is suppressed because
+   Google's own docs permit this when proper attribution is shown elsewhere.
+
+   We also hide the inline hover tooltip + "Translated into:" edit popup
+   Google injects around every translated node. That popup ships with a
+   "Cancel" button whose real behavior is "revert page to English" —
+   pressing it wipes our googtrans cookie and surprises the user. The only
+   stable way to suppress it is CSS; there's no disable API for the
+   inline tooltip. Users change languages via our own dropdown instead. */
+.goog-te-banner-frame.skiptranslate,
+.goog-te-balloon-frame,
+.goog-tooltip,
+.goog-tooltip:hover,
+#goog-gt-tt,
+.goog-te-gadget-icon,
+.VIpgJd-ZVi9od-l4eHX-hSRGPd,
+.VIpgJd-ZVi9od-ORHb-OEVmcd,
+.VIpgJd-ZVi9od-aZ2wEe-wOHMyf,
+.VIpgJd-ZVi9od-aZ2wEe-OiiCO {
+  display: none !important;
+  visibility: hidden !important;
+}
+
+/* Google wraps every translated text node in a highlight span on hover;
+   hiding the tooltip is enough but the text-decoration leaks through
+   unless we neutralize it too. */
+font.goog-text-highlight {
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+body {
+  top: 0 !important;
+  position: static !important;
+}
+
+#faivri-gt-host,
+#google_translate_element {
+  position: absolute !important;
+  left: -9999px;
+  width: 0;
+  height: 0;
+  overflow: hidden;
+  pointer-events: none;
+}

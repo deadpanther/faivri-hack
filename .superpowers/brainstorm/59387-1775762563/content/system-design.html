@@ -1,0 +1,160 @@
+<h2>FairCheck — System Architecture</h2>
+<p class="subtitle">Modular Monolith with Background Workers + Cost-Optimal Data Pipeline</p>
+
+<!-- Architecture Diagram -->
+<div class="mockup">
+  <div class="mockup-header">System Architecture Overview</div>
+  <div class="mockup-body" style="padding:24px;background:#0F172A;color:#e2e8f0;font-family:monospace;font-size:13px;line-height:1.8;">
+<pre style="margin:0;white-space:pre;overflow-x:auto;">
+┌─────────────────────────────────────────────────────────────────────┐
+│                        NEXT.JS FRONTEND                            │
+│  ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌─────────┐ │
+│  │  Home /   │ │ Verdict  │ │Negotiate │ │  Vault   │ │ Settings│ │
+│  │  Input    │ │ Results  │ │  Coach   │ │ History  │ │ Profile │ │
+│  └──────────┘ └──────────┘ └──────────┘ └──────────┘ └─────────┘ │
+│  Glassmorphism UI • Framer Motion • WebSocket for streaming       │
+└───────────────────────────┬─────────────────────────────────────────┘
+                            │ REST + WebSocket
+                            ▼
+┌─────────────────────────────────────────────────────────────────────┐
+│                     FASTAPI GATEWAY                                 │
+│  ┌────────────────────────────────────────────────────────────────┐ │
+│  │  /api/v1/analyze   → Quote Analysis (orchestrator)            │ │
+│  │  /api/v1/voice     → Speech-to-Text → analyze pipeline        │ │
+│  │  /api/v1/image     → Vision API → extract text → analyze      │ │
+│  │  /api/v1/negotiate → Negotiation script generator             │ │
+│  │  /api/v1/feedback  → User price confirmations                 │ │
+│  │  /api/v1/history   → User query history + savings             │ │
+│  │  /ws/stream        → WebSocket for real-time verdict stream   │ │
+│  └────────────────────────────────────────────────────────────────┘ │
+│                                                                     │
+│  DOMAIN ROUTERS (internal modules):                                │
+│  ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌──────────┐             │
+│  │   Auto   │ │ Medical  │ │  Home    │ │  Legal   │             │
+│  │  Repair  │ │ Prescr.  │ │ Services │ │  (P1)    │             │
+│  └────┬─────┘ └────┬─────┘ └────┬─────┘ └────┬─────┘             │
+│       └─────────────┴────────────┴─────────────┘                   │
+│                      │                                              │
+└──────────────────────┼──────────────────────────────────────────────┘
+                       ▼
+┌─────────────────────────────────────────────────────────────────────┐
+│              INTELLIGENCE ENGINE (Background Workers)               │
+│                                                                     │
+│  ┌─────────────────────────────────────────────────────────────┐   │
+│  │  ORCHESTRATOR — Receives query, fans out to all layers      │   │
+│  │  in parallel, merges results, calls LLM for synthesis       │   │
+│  └─────────────────────────────────────────────────────────────┘   │
+│       │            │              │              │                   │
+│       ▼            ▼              ▼              ▼                   │
+│  ┌─────────┐ ┌──────────┐ ┌───────────┐ ┌──────────────┐          │
+│  │ Layer 1 │ │ Layer 2  │ │  Layer 3  │ │   Layer 4    │          │
+│  │ Web     │ │ Knowledge│ │ Community │ │ LLM Reason   │          │
+│  │ Search  │ │ Base     │ │ Intel     │ │              │          │
+│  │         │ │          │ │           │ │ Claude Haiku │          │
+│  │ Tavily  │ │ Supabase │ │ Supabase  │ │ → Sonnet     │          │
+│  │ SerpAPI │ │ pgvector │ │ pgvector  │ │ → Opus       │          │
+│  │ Firecrawl│ │ + RAG   │ │ + user    │ │ (tiered)     │          │
+│  │         │ │          │ │ feedback  │ │              │          │
+│  └─────────┘ └──────────┘ └───────────┘ └──────────────┘          │
+│                                                                     │
+│  Task Queue: ARQ (lightweight Redis-based, async Python native)    │
+└──────────────────────────┬──────────────────────────────────────────┘
+                           ▼
+┌─────────────────────────────────────────────────────────────────────┐
+│                        DATA LAYER                                   │
+│                                                                     │
+│  ┌──────────────────────┐  ┌──────────────────────────────────┐    │
+│  │   SUPABASE           │  │   REDIS (Upstash Free Tier)      │    │
+│  │                      │  │                                  │    │
+│  │  • Users & Auth      │  │  • Task queue (ARQ)              │    │
+│  │  • Query history     │  │  • Response cache (TTL: 24h)     │    │
+│  │  • Pricing data      │  │  • Rate limiting                 │    │
+│  │  • Community prices  │  │  • Session state                 │    │
+│  │  • Vendor profiles   │  │                                  │    │
+│  │  • pgvector embeddings│  └──────────────────────────────────┘    │
+│  │  • File storage      │                                          │
+│  │    (invoices/photos) │  ┌──────────────────────────────────┐    │
+│  │                      │  │   COST-OPTIMAL DATA PIPELINE     │    │
+│  └──────────────────────┘  │                                  │    │
+│                            │  1. Cache-first: check Redis     │    │
+│                            │  2. DB lookup: check Supabase    │    │
+│                            │  3. Tavily search: if miss       │    │
+│                            │  4. SerpAPI: if Tavily fails     │    │
+│                            │  5. Firecrawl: deep scrape only  │    │
+│                            │     for high-value / new data    │    │
+│                            │  6. Store result → cache + DB    │    │
+│                            └──────────────────────────────────┘    │
+└─────────────────────────────────────────────────────────────────────┘
+</pre>
+  </div>
+</div>
+
+<!-- Cost Optimization Strategy -->
+<div style="margin-top:24px;">
+  <h3>Cost-Optimal Data Extraction Strategy</h3>
+  <p class="subtitle">Every query follows a cascading cost ladder — cheapest source first, expensive only when needed</p>
+</div>
+
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:16px;">
+  <div style="padding:16px;border-radius:12px;background:rgba(0,200,83,0.08);border:1px solid rgba(0,200,83,0.2);">
+    <h4 style="color:#00C853;margin-top:0;">Tier 1 — Free / Near-Free</h4>
+    <ul style="font-size:13px;">
+      <li><strong>Supabase cache</strong> — previous queries, community data ($0)</li>
+      <li><strong>Redis cache</strong> — hot queries, 24h TTL ($0 on Upstash free)</li>
+      <li><strong>Static knowledge base</strong> — NPPA drug prices, CGHS rates, OEM part catalogs ($0, scraped once)</li>
+      <li><strong>Claude Haiku</strong> — intent classification, simple lookups ($0.25/1M tokens)</li>
+    </ul>
+    <p style="font-size:12px;color:#888;margin-bottom:0;">~80% of queries resolved here</p>
+  </div>
+
+  <div style="padding:16px;border-radius:12px;background:rgba(0,82,255,0.08);border:1px solid rgba(0,82,255,0.2);">
+    <h4 style="color:#0052FF;margin-top:0;">Tier 2 — Low Cost</h4>
+    <ul style="font-size:13px;">
+      <li><strong>Tavily search</strong> — 1000 free/mo, then $0.01/search</li>
+      <li><strong>Claude Sonnet</strong> — standard analysis + verdict ($3/1M tokens)</li>
+      <li><strong>Community data merge</strong> — pgvector similarity search ($0)</li>
+    </ul>
+    <p style="font-size:12px;color:#888;margin-bottom:0;">~15% of queries need this</p>
+  </div>
+
+  <div style="padding:16px;border-radius:12px;background:rgba(255,214,0,0.08);border:1px solid rgba(255,214,0,0.2);">
+    <h4 style="color:#FFD600;margin-top:0;">Tier 3 — Medium Cost</h4>
+    <ul style="font-size:13px;">
+      <li><strong>SerpAPI</strong> — fallback search, $50/mo for 5000 searches</li>
+      <li><strong>GPT-4o Vision</strong> — invoice/bill photo analysis</li>
+      <li><strong>Claude Opus</strong> — complex multi-domain reasoning</li>
+    </ul>
+    <p style="font-size:12px;color:#888;margin-bottom:0;">~4% of queries need this</p>
+  </div>
+
+  <div style="padding:16px;border-radius:12px;background:rgba(255,61,0,0.08);border:1px solid rgba(255,61,0,0.2);">
+    <h4 style="color:#FF3D00;margin-top:0;">Tier 4 — Expensive (On-Demand)</h4>
+    <ul style="font-size:13px;">
+      <li><strong>Firecrawl deep scrape</strong> — new vendor sites, price aggregators</li>
+      <li><strong>Batch scraping jobs</strong> — scheduled, not per-query</li>
+      <li><strong>Voice transcription</strong> — Whisper API for recordings</li>
+    </ul>
+    <p style="font-size:12px;color:#888;margin-bottom:0;">~1% of queries + scheduled batch jobs</p>
+  </div>
+</div>
+
+<div style="margin-top:24px;padding:16px;border-radius:12px;background:rgba(0,82,255,0.06);border:1px solid rgba(0,82,255,0.15);">
+  <p style="margin:0;font-size:14px;"><strong>Estimated cost per query:</strong> ~₹0.50-2.00 for 95% of queries (cache hit + Haiku/Sonnet). Heavy queries with Vision + Opus + Firecrawl: ~₹8-15. At 10K queries/day = ~₹5,000-15,000/day operational cost.</p>
+</div>
+
+<div class="options" style="margin-top:24px;">
+  <div class="option" data-choice="approve" onclick="toggleSelect(this)">
+    <div class="letter">✓</div>
+    <div class="content">
+      <h3>Looks good — move to next section</h3>
+      <p>Architecture and cost strategy approved. Show me the database schema next.</p>
+    </div>
+  </div>
+  <div class="option" data-choice="revise" onclick="toggleSelect(this)">
+    <div class="letter">✎</div>
+    <div class="content">
+      <h3>I have changes</h3>
+      <p>Let me suggest modifications to this architecture.</p>
+    </div>
+  </div>
+</div>

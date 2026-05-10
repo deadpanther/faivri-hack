@@ -1,0 +1,95 @@
+<h2>Architecture Approach — Pick One</h2>
+<p class="subtitle">How should we structure the FairCheck system? All use the same stack (Next.js + FastAPI + Supabase + Claude API).<br>The difference is <strong>how the pieces connect</strong>.</p>
+
+<div class="options">
+  <div class="option" data-choice="a" onclick="toggleSelect(this)">
+    <div class="letter">A</div>
+    <div class="content">
+      <h3>Monolith API — Single FastAPI Server</h3>
+      <p><strong>Everything in one Python service.</strong> Quote analysis, web search, scraping, LLM calls, user management — all endpoints on one FastAPI server. Next.js frontend calls this single API.</p>
+      <div class="pros-cons">
+        <div class="pros">
+          <h4>Pros</h4>
+          <ul>
+            <li>Fastest to build — no inter-service communication</li>
+            <li>Simple deployment (1 backend, 1 frontend)</li>
+            <li>Easy to debug — single process, single log</li>
+            <li>Shared state and caching in-memory</li>
+          </ul>
+        </div>
+        <div class="cons">
+          <h4>Cons</h4>
+          <ul>
+            <li>LLM calls block other requests (need careful async)</li>
+            <li>Harder to scale individual bottlenecks</li>
+            <li>Single point of failure</li>
+            <li>Gets messy past ~50 endpoints</li>
+          </ul>
+        </div>
+      </div>
+      <p style="margin-top:12px;color:#0052FF;font-weight:600;">Best for: Getting to market fast, iterating quickly, solo/small team</p>
+    </div>
+  </div>
+
+  <div class="option" data-choice="b" onclick="toggleSelect(this)">
+    <div class="letter">B</div>
+    <div class="content">
+      <h3>Modular Monolith — Domain Routers + Background Workers</h3>
+      <p><strong>One server, but internally organized by domain.</strong> FastAPI with separate routers (auto, medical, home, legal). Background workers (Celery/ARQ) handle slow tasks (scraping, LLM calls). Clean internal boundaries without microservice complexity.</p>
+      <div class="pros-cons">
+        <div class="pros">
+          <h4>Pros</h4>
+          <ul>
+            <li>Still one deployment, but well-organized</li>
+            <li>Background workers = non-blocking LLM/scrape calls</li>
+            <li>Easy to extract into microservices later if needed</li>
+            <li>Each domain module is independently testable</li>
+            <li>WebSocket support for real-time verdict streaming</li>
+          </ul>
+        </div>
+        <div class="cons">
+          <h4>Cons</h4>
+          <ul>
+            <li>Slightly more setup (Redis for task queue)</li>
+            <li>Need to manage worker processes alongside API</li>
+            <li>~20% more initial code than pure monolith</li>
+          </ul>
+        </div>
+      </div>
+      <p style="margin-top:12px;color:#00C853;font-weight:600;">⭐ RECOMMENDED — Best balance of speed, quality, and future scalability</p>
+    </div>
+  </div>
+
+  <div class="option" data-choice="c" onclick="toggleSelect(this)">
+    <div class="letter">C</div>
+    <div class="content">
+      <h3>Microservices — Separate Services Per Domain</h3>
+      <p><strong>Each domain is its own service.</strong> API Gateway routes to auto-service, medical-service, search-service, etc. Each deploys independently. Full event-driven architecture with message queues.</p>
+      <div class="pros-cons">
+        <div class="pros">
+          <h4>Pros</h4>
+          <ul>
+            <li>Maximum scalability — scale hot services independently</li>
+            <li>Team can work on domains in parallel</li>
+            <li>Fault isolation — one service failing doesn't kill others</li>
+            <li>Technology flexibility per service</li>
+          </ul>
+        </div>
+        <div class="cons">
+          <h4>Cons</h4>
+          <ul>
+            <li>Massive overhead for a new product — 3-5x slower to build</li>
+            <li>Complex deployment, monitoring, and debugging</li>
+            <li>Network latency between services adds to response time</li>
+            <li>Premature optimization — you don't need this until 100K+ MAU</li>
+          </ul>
+        </div>
+      </div>
+      <p style="margin-top:12px;color:#FF3D00;font-weight:600;">Best for: Large teams, proven product-market fit, high scale</p>
+    </div>
+  </div>
+</div>
+
+<div style="margin-top:24px;padding:16px;border-radius:12px;background:rgba(0,82,255,0.08);border:1px solid rgba(0,82,255,0.2);">
+  <p style="margin:0;font-size:14px;"><strong>My recommendation:</strong> Option B (Modular Monolith). You get clean domain separation and non-blocking AI calls without microservice pain. When you hit scale, each router + worker pair can be extracted into its own service with minimal refactoring. This is how Shopify, GitHub, and Basecamp scaled to millions.</p>
+</div>

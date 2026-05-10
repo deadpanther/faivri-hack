@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Faivri</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="stylesheet" href="popup.css" />
+</head>
+<body>
+  <header class="hdr">
+    <div class="brand">
+      <span class="dot" id="statusDot"></span>
+      Faivri
+    </div>
+    <div class="sub" id="hdrSub">Price check &amp; negotiate on eBay and Facebook Marketplace.</div>
+  </header>
+
+  <!-- ─── Signed-out state ─────────────────────────────────── -->
+  <section class="auth" id="signedOutCard" hidden>
+    <h3 class="card-title">Sign in to track your analyses</h3>
+    <p class="muted">
+      Faivri only saves verdicts to your vault when you're signed in. Pair this
+      browser with your Faivri account in two clicks.
+    </p>
+    <button id="signInBtn" type="button" class="primary">Sign in with Faivri</button>
+    <div class="pair-hint" id="pairHint" hidden>
+      <p class="muted">Waiting for you to confirm in the browser tab…</p>
+      <p class="code-hint">Pairing code: <code id="pairCode">—</code></p>
+      <button id="cancelPairBtn" type="button" class="link">Cancel</button>
+    </div>
+    <p class="status" id="authStatus" aria-live="polite"></p>
+  </section>
+
+  <!-- ─── Signed-in state ──────────────────────────────────── -->
+  <section class="auth" id="signedInCard" hidden>
+    <div class="me">
+      <div class="me-name" id="meName">—</div>
+      <div class="me-plan" id="mePlan">scout</div>
+    </div>
+    <div class="me-actions">
+      <a href="https://faivri.com/vault" target="_blank" rel="noopener">Open vault</a>
+      <button id="signOutBtn" type="button" class="link">Sign out</button>
+    </div>
+  </section>
+
+  <section class="howto">
+    <ol>
+      <li>Open an <strong>eBay item</strong> or <strong>Facebook Marketplace listing</strong>.</li>
+      <li>Click the black <em>Faivri</em> pill that appears in the top-right corner.</li>
+      <li>Review the verdict and copy your negotiation script.</li>
+    </ol>
+  </section>
+
+  <section class="analyses" id="analysesCard" hidden>
+    <h3 class="card-title">Recent analyses</h3>
+    <ul id="analysesList" class="analyses-list"></ul>
+  </section>
+
+  <details class="config">
+    <summary>Advanced — API URL</summary>
+    <label for="apiUrl">Faivri API URL</label>
+    <input id="apiUrl" type="url" placeholder="https://faircheck-backend-production.up.railway.app" />
+    <button id="saveBtn" type="button" class="secondary">Save</button>
+    <p id="saveStatus" class="status" aria-live="polite"></p>
+  </details>
+
+  <footer class="foot">
+    <a href="https://faivri.com" target="_blank" rel="noopener">faivri.com</a>
+    <span class="ver">v0.6.0</span>
+  </footer>
+
+  <script src="popup.js"></script>
+</body>
+</html>
