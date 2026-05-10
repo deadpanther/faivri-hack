@@ -1,0 +1,1010 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FairCheck — Web App UI Mockups</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: 'Inter', sans-serif;
+    background: #030712;
+    color: #e2e8f0;
+    min-height: 100vh;
+  }
+
+  /* Section Headers */
+  .section-header {
+    text-align: center;
+    padding: 60px 20px 30px;
+  }
+  .section-header h1 { font-size: 32px; font-weight: 800; color: #fff; }
+  .section-header p { font-size: 14px; color: #64748b; margin-top: 8px; max-width: 600px; margin-left: auto; margin-right: auto; }
+  .section-header .badge {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    margin-bottom: 12px;
+  }
+
+  /* Browser Chrome Frame */
+  .browser-frame {
+    max-width: 1200px;
+    margin: 0 auto 80px;
+    border-radius: 16px;
+    border: 1px solid rgba(255,255,255,0.06);
+    overflow: hidden;
+    box-shadow: 0 25px 100px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.03);
+  }
+  .browser-bar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    background: rgba(255,255,255,0.03);
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+  }
+  .browser-dots { display: flex; gap: 6px; }
+  .browser-dots span {
+    width: 12px; height: 12px; border-radius: 50%;
+    background: rgba(255,255,255,0.08);
+  }
+  .browser-dots span:first-child { background: #FF5F57; }
+  .browser-dots span:nth-child(2) { background: #FFBD2E; }
+  .browser-dots span:nth-child(3) { background: #28CA41; }
+  .browser-url {
+    flex: 1;
+    padding: 6px 14px;
+    border-radius: 8px;
+    background: rgba(255,255,255,0.04);
+    font-size: 12px;
+    color: #64748b;
+  }
+
+  /* ============================== */
+  /* SCREEN 1: HOME / PULSE (WEB)   */
+  /* ============================== */
+  .home-web {
+    min-height: 720px;
+    background: #050A18;
+    position: relative;
+    overflow: hidden;
+  }
+
+  /* Orbs */
+  .orb { position: absolute; border-radius: 50%; filter: blur(100px); pointer-events: none; }
+  .orb-1 { width: 500px; height: 500px; background: radial-gradient(circle,#0052FF 0%,transparent 70%); top: -200px; right: -100px; opacity: 0.25; animation: float 10s ease-in-out infinite; }
+  .orb-2 { width: 400px; height: 400px; background: radial-gradient(circle,#7C3AED 0%,transparent 70%); bottom: -100px; left: -100px; opacity: 0.2; animation: float 10s ease-in-out infinite 3s; }
+  .orb-3 { width: 300px; height: 300px; background: radial-gradient(circle,#00C853 0%,transparent 70%); bottom: 50px; right: 200px; opacity: 0.1; animation: float 10s ease-in-out infinite 6s; }
+  @keyframes float { 0%,100%{transform:translate(0,0) scale(1);} 33%{transform:translate(20px,-30px) scale(1.05);} 66%{transform:translate(-15px,20px) scale(0.95);} }
+
+  /* Top Nav */
+  .top-nav {
+    position: relative; z-index: 10;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 20px 40px;
+  }
+  .nav-logo { display: flex; align-items: center; gap: 10px; }
+  .nav-logo .icon {
+    width: 36px; height: 36px; border-radius: 10px;
+    background: linear-gradient(135deg,#0052FF,#7C3AED);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px; box-shadow: 0 4px 20px rgba(0,82,255,0.3);
+  }
+  .nav-logo span { font-size: 18px; font-weight: 800; color: #fff; letter-spacing: -0.5px; }
+
+  .nav-links { display: flex; align-items: center; gap: 32px; }
+  .nav-links a { font-size: 14px; color: #94a3b8; text-decoration: none; font-weight: 500; transition: color 0.2s; cursor: pointer; }
+  .nav-links a:hover { color: #fff; }
+  .nav-links a.active { color: #0052FF; }
+
+  .nav-right { display: flex; align-items: center; gap: 16px; }
+  .nav-btn {
+    padding: 8px 20px; border-radius: 10px; font-size: 13px; font-weight: 600;
+    cursor: pointer; transition: all 0.2s; border: none; font-family: 'Inter', sans-serif;
+  }
+  .nav-btn.ghost { background: transparent; color: #94a3b8; }
+  .nav-btn.ghost:hover { color: #fff; }
+  .nav-btn.primary { background: linear-gradient(135deg,#0052FF,#3B82F6); color: #fff; box-shadow: 0 4px 20px rgba(0,82,255,0.3); }
+  .nav-btn.primary:hover { transform: translateY(-1px); box-shadow: 0 6px 30px rgba(0,82,255,0.4); }
+
+  /* Hero Section */
+  .hero {
+    position: relative; z-index: 5;
+    display: flex; flex-direction: column; align-items: center;
+    padding: 60px 40px 40px; text-align: center;
+  }
+  .hero h1 {
+    font-size: 52px; font-weight: 900; line-height: 1.1; letter-spacing: -1.5px;
+    background: linear-gradient(135deg, #fff 0%, #94a3b8 100%);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    max-width: 700px;
+  }
+  .hero .subtitle {
+    font-size: 18px; color: #64748b; margin-top: 16px; max-width: 520px; line-height: 1.6;
+  }
+
+  /* Main Input Area */
+  .input-area {
+    position: relative; z-index: 5;
+    max-width: 700px; width: 100%; margin: 32px auto 0;
+    padding: 24px;
+    background: rgba(255,255,255,0.03);
+    backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 24px;
+    box-shadow: 0 8px 40px rgba(0,0,0,0.3);
+  }
+
+  .input-main {
+    display: flex; align-items: center; gap: 12px;
+    padding: 4px;
+  }
+  .input-field {
+    flex: 1; padding: 14px 18px; border-radius: 14px;
+    background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.06);
+    color: #e2e8f0; font-size: 16px; font-family: 'Inter', sans-serif; outline: none;
+  }
+  .input-field::placeholder { color: #475569; }
+
+  .input-actions { display: flex; gap: 8px; }
+  .input-icon-btn {
+    width: 48px; height: 48px; border-radius: 14px; border: none;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 20px; cursor: pointer; transition: all 0.2s;
+    background: rgba(255,255,255,0.04); color: #94a3b8;
+  }
+  .input-icon-btn:hover { background: rgba(255,255,255,0.08); color: #fff; }
+  .input-icon-btn.mic {
+    background: linear-gradient(135deg,#0052FF,#3B82F6); color: #fff;
+    box-shadow: 0 4px 20px rgba(0,82,255,0.3);
+    position: relative; overflow: hidden;
+  }
+  .input-icon-btn.mic::before {
+    content: ''; position: absolute; inset: -2px; border-radius: 16px;
+    background: linear-gradient(135deg,#0052FF,#7C3AED,#0052FF);
+    background-size: 300% 300%; animation: shimmer 3s ease-in-out infinite; z-index: -1;
+  }
+  @keyframes shimmer { 0%{background-position:0% 50%;} 50%{background-position:100% 50%;} 100%{background-position:0% 50%;} }
+
+  /* Quick action chips */
+  .chips {
+    display: flex; flex-wrap: wrap; gap: 8px;
+    margin-top: 16px; padding-top: 16px;
+    border-top: 1px solid rgba(255,255,255,0.04);
+  }
+  .chip {
+    display: flex; align-items: center; gap: 6px;
+    padding: 8px 14px; border-radius: 10px;
+    background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06);
+    font-size: 12px; color: #94a3b8; cursor: pointer; transition: all 0.2s;
+  }
+  .chip:hover { background: rgba(0,82,255,0.08); border-color: rgba(0,82,255,0.2); color: #fff; }
+  .chip .chip-icon { font-size: 14px; }
+
+  /* Live ticker */
+  .ticker-bar {
+    position: relative; z-index: 5;
+    max-width: 700px; margin: 20px auto 0;
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+    font-size: 13px; color: #22c55e;
+  }
+  .ticker-dot {
+    width: 6px; height: 6px; border-radius: 50%; background: #22c55e;
+    animation: blink 2s ease-in-out infinite;
+  }
+  @keyframes blink { 0%,100%{opacity:1;} 50%{opacity:0.3;} }
+
+  /* Stats bar */
+  .stats-bar {
+    position: relative; z-index: 5;
+    display: flex; justify-content: center; gap: 40px;
+    margin-top: 48px; padding: 24px;
+  }
+  .stat-item { text-align: center; }
+  .stat-value { font-size: 28px; font-weight: 800; color: #fff; }
+  .stat-value .accent { color: #0052FF; }
+  .stat-label { font-size: 12px; color: #64748b; margin-top: 4px; }
+
+
+  /* ============================== */
+  /* SCREEN 2: VERDICT               */
+  /* ============================== */
+  .verdict-web {
+    min-height: 720px;
+    background: #050A18;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .verdict-content {
+    position: relative; z-index: 5;
+    padding: 20px 40px 40px;
+  }
+
+  /* Back button */
+  .back-btn {
+    display: inline-flex; align-items: center; gap: 6px;
+    font-size: 13px; color: #64748b; cursor: pointer; margin-bottom: 24px;
+    transition: color 0.2s;
+  }
+  .back-btn:hover { color: #fff; }
+
+  /* Verdict layout */
+  .verdict-grid {
+    display: grid;
+    grid-template-columns: 1fr 380px;
+    gap: 24px;
+    max-width: 1100px;
+    margin: 0 auto;
+  }
+
+  /* Main verdict card */
+  .verdict-card {
+    padding: 32px;
+    background: rgba(255,255,255,0.03);
+    backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 24px;
+  }
+
+  .verdict-header {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 24px;
+  }
+  .verdict-domain {
+    display: flex; align-items: center; gap: 8px;
+    padding: 6px 14px; border-radius: 8px;
+    background: rgba(0,82,255,0.1); border: 1px solid rgba(0,82,255,0.2);
+    font-size: 12px; font-weight: 600; color: #3B82F6;
+  }
+  .verdict-time { font-size: 12px; color: #475569; }
+
+  /* The big verdict */
+  .verdict-big {
+    text-align: center; padding: 32px 0; margin-bottom: 24px;
+    border-radius: 20px;
+    background: linear-gradient(135deg, rgba(255,61,0,0.06), rgba(255,61,0,0.02));
+    border: 1px solid rgba(255,61,0,0.15);
+  }
+  .verdict-multiplier {
+    font-size: 64px; font-weight: 900; letter-spacing: -2px;
+    color: #FF3D00;
+    text-shadow: 0 0 40px rgba(255,61,0,0.3);
+  }
+  .verdict-label {
+    font-size: 16px; font-weight: 700; color: #FF3D00;
+    letter-spacing: 2px; text-transform: uppercase; margin-top: 4px;
+  }
+  .verdict-sublabel {
+    font-size: 14px; color: #94a3b8; margin-top: 8px;
+  }
+
+  /* Fair price gauge */
+  .price-gauge {
+    margin: 24px 0;
+    padding: 20px;
+    border-radius: 16px;
+    background: rgba(255,255,255,0.02);
+    border: 1px solid rgba(255,255,255,0.06);
+  }
+  .gauge-label { font-size: 12px; color: #64748b; margin-bottom: 12px; font-weight: 500; text-transform: uppercase; letter-spacing: 1px; }
+  .gauge-bar-bg {
+    height: 12px; border-radius: 6px; background: rgba(255,255,255,0.04);
+    position: relative; overflow: visible; margin: 20px 0 8px;
+  }
+  .gauge-fair {
+    position: absolute; height: 100%; border-radius: 6px;
+    background: linear-gradient(90deg, #00C853, #4ADE80);
+    left: 15%; width: 30%;
+    box-shadow: 0 0 12px rgba(0,200,83,0.3);
+  }
+  .gauge-quoted {
+    position: absolute; top: -8px;
+    left: 72%; width: 3px; height: 28px;
+    background: #FF3D00; border-radius: 2px;
+    box-shadow: 0 0 8px rgba(255,61,0,0.5);
+  }
+  .gauge-quoted-label {
+    position: absolute; top: -28px; left: 72%; transform: translateX(-50%);
+    font-size: 11px; font-weight: 700; color: #FF3D00;
+    white-space: nowrap;
+  }
+  .gauge-fair-label {
+    position: absolute; top: -28px; left: 30%; transform: translateX(-50%);
+    font-size: 11px; font-weight: 600; color: #00C853;
+    white-space: nowrap;
+  }
+  .gauge-prices {
+    display: flex; justify-content: space-between; font-size: 11px; color: #475569;
+  }
+
+  /* Explanation */
+  .explanation {
+    margin-top: 20px; padding: 16px; border-radius: 14px;
+    background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.04);
+  }
+  .explanation h4 { font-size: 13px; color: #94a3b8; margin-bottom: 8px; font-weight: 600; }
+  .explanation p { font-size: 14px; color: #cbd5e1; line-height: 1.7; }
+
+  /* Confidence */
+  .confidence {
+    display: flex; align-items: center; gap: 12px;
+    margin-top: 16px; padding: 12px 16px; border-radius: 12px;
+    background: rgba(0,82,255,0.04); border: 1px solid rgba(0,82,255,0.1);
+  }
+  .confidence-ring {
+    width: 44px; height: 44px; border-radius: 50%; position: relative;
+    background: conic-gradient(#0052FF 0deg, #0052FF 313deg, rgba(255,255,255,0.06) 313deg);
+    display: flex; align-items: center; justify-content: center;
+  }
+  .confidence-ring .inner {
+    width: 34px; height: 34px; border-radius: 50%;
+    background: #0A0F1E; display: flex; align-items: center; justify-content: center;
+    font-size: 12px; font-weight: 700; color: #0052FF;
+  }
+  .confidence-text { font-size: 13px; color: #94a3b8; }
+  .confidence-text strong { color: #e2e8f0; }
+
+  /* Sidebar cards */
+  .sidebar { display: flex; flex-direction: column; gap: 16px; }
+
+  .side-card {
+    padding: 20px;
+    background: rgba(255,255,255,0.03);
+    backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 20px;
+  }
+  .side-card h3 {
+    font-size: 14px; font-weight: 700; margin-bottom: 14px;
+    display: flex; align-items: center; gap: 8px;
+  }
+
+  /* Red flags */
+  .red-flag {
+    display: flex; align-items: flex-start; gap: 10px;
+    padding: 10px 12px; border-radius: 10px; margin-bottom: 8px;
+    background: rgba(255,61,0,0.04); border: 1px solid rgba(255,61,0,0.1);
+  }
+  .red-flag-icon { font-size: 14px; margin-top: 1px; }
+  .red-flag p { font-size: 13px; color: #cbd5e1; line-height: 1.5; }
+
+  /* Questions to ask */
+  .question-item {
+    display: flex; align-items: flex-start; gap: 10px;
+    padding: 10px 12px; border-radius: 10px; margin-bottom: 8px;
+    background: rgba(0,82,255,0.04); border: 1px solid rgba(0,82,255,0.1);
+  }
+  .q-num {
+    width: 22px; height: 22px; border-radius: 6px; flex-shrink: 0;
+    background: rgba(0,82,255,0.15); display: flex; align-items: center; justify-content: center;
+    font-size: 11px; font-weight: 700; color: #3B82F6;
+  }
+  .question-item p { font-size: 13px; color: #cbd5e1; line-height: 1.5; }
+
+  /* Action buttons */
+  .action-btns {
+    display: flex; flex-direction: column; gap: 8px; margin-top: 4px;
+  }
+  .action-btn {
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+    padding: 12px; border-radius: 12px; font-size: 14px; font-weight: 600;
+    cursor: pointer; transition: all 0.2s; border: none; font-family: 'Inter', sans-serif;
+    width: 100%;
+  }
+  .action-btn.negotiate {
+    background: linear-gradient(135deg,#0052FF,#3B82F6); color: #fff;
+    box-shadow: 0 4px 20px rgba(0,82,255,0.3);
+  }
+  .action-btn.negotiate:hover { transform: translateY(-1px); box-shadow: 0 6px 30px rgba(0,82,255,0.4); }
+  .action-btn.share {
+    background: rgba(255,255,255,0.04); color: #94a3b8;
+    border: 1px solid rgba(255,255,255,0.08);
+  }
+  .action-btn.share:hover { background: rgba(255,255,255,0.08); color: #fff; }
+  .action-btn.feedback {
+    background: rgba(0,200,83,0.08); color: #00C853;
+    border: 1px solid rgba(0,200,83,0.15);
+  }
+
+
+  /* ============================== */
+  /* SCREEN 3: NEGOTIATION COACH     */
+  /* ============================== */
+  .negotiate-web {
+    min-height: 720px;
+    background: #050A18;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .negotiate-content {
+    position: relative; z-index: 5;
+    padding: 20px 40px 40px;
+  }
+
+  .negotiate-grid {
+    display: grid;
+    grid-template-columns: 1fr 380px;
+    gap: 24px;
+    max-width: 1100px;
+    margin: 0 auto;
+  }
+
+  /* Chat script */
+  .script-card {
+    padding: 24px;
+    background: rgba(255,255,255,0.03);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 24px;
+  }
+
+  .script-header {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 20px;
+  }
+  .script-header h3 { font-size: 18px; font-weight: 700; }
+
+  .chat-flow { display: flex; flex-direction: column; gap: 12px; }
+
+  .chat-bubble {
+    max-width: 85%; padding: 14px 18px;
+    border-radius: 16px; font-size: 14px; line-height: 1.6;
+  }
+  .chat-you {
+    align-self: flex-end;
+    background: linear-gradient(135deg, rgba(0,82,255,0.15), rgba(0,82,255,0.08));
+    border: 1px solid rgba(0,82,255,0.2);
+    color: #e2e8f0;
+  }
+  .chat-you .chat-label { font-size: 11px; font-weight: 700; color: #3B82F6; margin-bottom: 4px; }
+
+  .chat-if {
+    align-self: flex-start;
+    background: rgba(255,214,0,0.04);
+    border: 1px solid rgba(255,214,0,0.12);
+    color: #fbbf24;
+    font-size: 13px;
+  }
+  .chat-if .chat-label { font-size: 11px; font-weight: 700; color: #FFD600; margin-bottom: 4px; }
+
+  .chat-response {
+    align-self: flex-end;
+    background: rgba(0,200,83,0.04);
+    border: 1px solid rgba(0,200,83,0.12);
+    color: #4ADE80;
+    font-size: 13px;
+  }
+  .chat-response .chat-label { font-size: 11px; font-weight: 700; color: #00C853; margin-bottom: 4px; }
+
+  .chat-signal {
+    align-self: center;
+    background: rgba(255,61,0,0.06);
+    border: 1px solid rgba(255,61,0,0.15);
+    color: #FF3D00;
+    text-align: center;
+    font-weight: 600;
+  }
+
+  /* Tactic cards */
+  .tactic {
+    padding: 14px; border-radius: 12px; margin-bottom: 10px;
+    background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.06);
+  }
+  .tactic h4 { font-size: 13px; font-weight: 700; color: #e2e8f0; margin-bottom: 6px; display: flex; align-items: center; gap: 6px; }
+  .tactic p { font-size: 12px; color: #94a3b8; line-height: 1.5; }
+
+
+  /* ============================== */
+  /* SCREEN 4: VAULT / HISTORY       */
+  /* ============================== */
+  .vault-web {
+    min-height: 720px;
+    background: #050A18;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .vault-content {
+    position: relative; z-index: 5;
+    padding: 20px 40px 40px;
+    max-width: 1100px; margin: 0 auto;
+  }
+
+  /* Savings hero */
+  .savings-hero {
+    text-align: center; padding: 40px;
+    background: linear-gradient(135deg, rgba(0,200,83,0.06), rgba(0,82,255,0.04));
+    border: 1px solid rgba(0,200,83,0.1);
+    border-radius: 24px; margin-bottom: 24px;
+  }
+  .savings-amount {
+    font-size: 56px; font-weight: 900; letter-spacing: -2px;
+    background: linear-gradient(135deg, #00C853, #4ADE80);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  }
+  .savings-label { font-size: 14px; color: #64748b; margin-top: 4px; }
+
+  .savings-stats {
+    display: flex; justify-content: center; gap: 40px; margin-top: 20px;
+  }
+  .savings-stat .val { font-size: 24px; font-weight: 800; color: #fff; }
+  .savings-stat .lab { font-size: 12px; color: #64748b; }
+
+  /* History list */
+  .history-list { display: flex; flex-direction: column; gap: 10px; }
+
+  .history-item {
+    display: flex; align-items: center; gap: 16px;
+    padding: 16px 20px; border-radius: 16px;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.06);
+    transition: all 0.2s; cursor: pointer;
+  }
+  .history-item:hover { background: rgba(255,255,255,0.06); transform: translateX(4px); }
+
+  .history-icon {
+    width: 44px; height: 44px; border-radius: 12px;
+    display: flex; align-items: center; justify-content: center; font-size: 22px;
+  }
+  .history-icon.auto { background: rgba(0,82,255,0.1); }
+  .history-icon.medical { background: rgba(0,200,83,0.1); }
+  .history-icon.home { background: rgba(255,214,0,0.1); }
+
+  .history-info { flex: 1; }
+  .history-info h4 { font-size: 14px; font-weight: 600; color: #e2e8f0; }
+  .history-info p { font-size: 12px; color: #64748b; margin-top: 2px; }
+
+  .history-result { text-align: right; }
+  .history-saved { font-size: 16px; font-weight: 700; color: #00C853; }
+  .history-verdict {
+    font-size: 11px; font-weight: 600; padding: 3px 8px; border-radius: 6px;
+    display: inline-block; margin-top: 4px;
+  }
+  .history-verdict.overcharge { background: rgba(255,61,0,0.1); color: #FF3D00; }
+  .history-verdict.fair { background: rgba(0,200,83,0.1); color: #00C853; }
+  .history-verdict.high { background: rgba(255,214,0,0.1); color: #FFD600; }
+</style>
+</head>
+<body>
+
+<!-- ======================== SCREEN 1: HOME ======================== -->
+<div class="section-header">
+  <div class="badge" style="background:rgba(0,82,255,0.1);color:#3B82F6;">Screen 1</div>
+  <h1>The "Pulse" — Home</h1>
+  <p>Voice-first input with glassmorphic cards, animated orbs, and live community savings ticker</p>
+</div>
+
+<div class="browser-frame" style="margin: 0 40px 80px;">
+  <div class="browser-bar">
+    <div class="browser-dots"><span></span><span></span><span></span></div>
+    <div class="browser-url">🔒 faircheck.app</div>
+  </div>
+  <div class="home-web">
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+    <div class="orb orb-3"></div>
+
+    <div class="top-nav">
+      <div class="nav-logo">
+        <div class="icon">⚖</div>
+        <span>FairCheck</span>
+      </div>
+      <div class="nav-links">
+        <a class="active">Home</a>
+        <a>History</a>
+        <a>Community</a>
+        <a>Pricing</a>
+      </div>
+      <div class="nav-right">
+        <button class="nav-btn ghost">Sign In</button>
+        <button class="nav-btn primary">Get Started</button>
+      </div>
+    </div>
+
+    <div class="hero">
+      <h1>Know if you're being cheated — in 30 seconds</h1>
+      <p class="subtitle">AI-powered second opinion for car repairs, medical bills, contractor quotes, and more. Works in India & US.</p>
+    </div>
+
+    <div class="input-area">
+      <div class="input-main">
+        <input class="input-field" type="text" placeholder="&quot;Mechanic quoted me ₹14,000 for brake pads in Pune...&quot;">
+        <div class="input-actions">
+          <button class="input-icon-btn" title="Upload photo">📷</button>
+          <button class="input-icon-btn" title="Upload file">📎</button>
+          <button class="input-icon-btn mic" title="Speak">🎙</button>
+        </div>
+      </div>
+      <div class="chips">
+        <div class="chip"><span class="chip-icon">🔧</span> Car Repair</div>
+        <div class="chip"><span class="chip-icon">💊</span> Prescription</div>
+        <div class="chip"><span class="chip-icon">🏠</span> Contractor Quote</div>
+        <div class="chip"><span class="chip-icon">📄</span> Scan Invoice</div>
+        <div class="chip"><span class="chip-icon">⚖</span> Legal Fees</div>
+      </div>
+    </div>
+
+    <div class="ticker-bar">
+      <span class="ticker-dot"></span>
+      <span>Live: Users saved ₹4,82,000 today across 12 cities</span>
+    </div>
+
+    <div class="stats-bar">
+      <div class="stat-item">
+        <div class="stat-value"><span class="accent">2.4M+</span></div>
+        <div class="stat-label">Quotes Checked</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-value"><span class="accent">₹142Cr</span></div>
+        <div class="stat-label">Money Saved</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-value"><span class="accent">340+</span></div>
+        <div class="stat-label">Cities Covered</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-value"><span class="accent">87%</span></div>
+        <div class="stat-label">Accuracy Rate</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ======================== SCREEN 2: VERDICT ======================== -->
+<div class="section-header">
+  <div class="badge" style="background:rgba(255,61,0,0.1);color:#FF3D00;">Screen 2</div>
+  <h1>The "Verdict" — Analysis Results</h1>
+  <p>The money shot — overcharge detection with price gauge, red flags, and instant action items</p>
+</div>
+
+<div class="browser-frame" style="margin: 0 40px 80px;">
+  <div class="browser-bar">
+    <div class="browser-dots"><span></span><span></span><span></span></div>
+    <div class="browser-url">🔒 faircheck.app/result/a7f3b2c1</div>
+  </div>
+  <div class="verdict-web">
+    <div class="orb orb-1" style="opacity:0.15;"></div>
+    <div class="orb orb-2" style="opacity:0.1;"></div>
+
+    <div class="top-nav">
+      <div class="nav-logo"><div class="icon">⚖</div><span>FairCheck</span></div>
+      <div class="nav-links"><a>Home</a><a>History</a><a>Community</a><a>Pricing</a></div>
+      <div class="nav-right"><button class="nav-btn ghost">Rudra</button></div>
+    </div>
+
+    <div class="verdict-content">
+      <div class="back-btn">← Back to Home</div>
+
+      <div class="verdict-grid">
+        <!-- Main Column -->
+        <div>
+          <div class="verdict-card">
+            <div class="verdict-header">
+              <div class="verdict-domain">🔧 Auto Repair — Pune, India</div>
+              <div class="verdict-time">Just now · 3.2s</div>
+            </div>
+
+            <div class="verdict-big">
+              <div class="verdict-multiplier">2.8x</div>
+              <div class="verdict-label">Overcharged</div>
+              <div class="verdict-sublabel">You were quoted ₹14,000 — fair range is ₹3,500–5,500</div>
+            </div>
+
+            <div class="price-gauge">
+              <div class="gauge-label">Price Comparison</div>
+              <div class="gauge-bar-bg">
+                <div class="gauge-fair-label">Fair: ₹3,500–5,500</div>
+                <div class="gauge-fair"></div>
+                <div class="gauge-quoted-label">Quoted: ₹14,000</div>
+                <div class="gauge-quoted"></div>
+              </div>
+              <div class="gauge-prices">
+                <span>₹0</span>
+                <span>₹5,000</span>
+                <span>₹10,000</span>
+                <span>₹15,000</span>
+                <span>₹20,000</span>
+              </div>
+            </div>
+
+            <div class="explanation">
+              <h4>Analysis</h4>
+              <p>Brake pads for Honda City 2019 cost <strong>₹1,500–2,500</strong> (OEM) or ₹800–1,500 (aftermarket). Rotors rarely need full replacement — resurfacing costs ₹500–800. Labour in Pune averages ₹800–1,200. Total fair range: <strong>₹3,500–5,500</strong>. Your quote of ₹14,000 is 2.8x above market rate.</p>
+            </div>
+
+            <div class="confidence">
+              <div class="confidence-ring"><div class="inner">87%</div></div>
+              <div class="confidence-text"><strong>High confidence</strong> — based on 340 data points from 8 garages in Pune, OEM catalogs, and 23 community reports</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Sidebar -->
+        <div class="sidebar">
+          <!-- Red Flags -->
+          <div class="side-card">
+            <h3>🚩 Red Flags</h3>
+            <div class="red-flag">
+              <span class="red-flag-icon">⚠</span>
+              <p>Full rotor replacement rarely needed — ask for wear measurement (should be &lt;1mm to justify)</p>
+            </div>
+            <div class="red-flag">
+              <span class="red-flag-icon">⚠</span>
+              <p>No distinction between OEM and aftermarket parts — likely upselling OEM at inflated price</p>
+            </div>
+          </div>
+
+          <!-- Questions to Ask -->
+          <div class="side-card">
+            <h3>💬 Ask Right Now</h3>
+            <div class="question-item">
+              <div class="q-num">1</div>
+              <p>"Can you show me the rotor wear measurement with a caliper?"</p>
+            </div>
+            <div class="question-item">
+              <div class="q-num">2</div>
+              <p>"Are these OEM Honda parts or aftermarket? Can I see the packaging?"</p>
+            </div>
+            <div class="question-item">
+              <div class="q-num">3</div>
+              <p>"Can I see the old parts before you install the new ones?"</p>
+            </div>
+          </div>
+
+          <!-- Actions -->
+          <div class="side-card">
+            <h3>⚡ Next Steps</h3>
+            <div class="action-btns">
+              <button class="action-btn negotiate">💪 Open Negotiation Coach</button>
+              <button class="action-btn share">📤 Share on WhatsApp</button>
+              <button class="action-btn feedback">✓ Report What You Paid</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ======================== SCREEN 3: NEGOTIATION ======================== -->
+<div class="section-header">
+  <div class="badge" style="background:rgba(124,58,237,0.1);color:#A78BFA;">Screen 3</div>
+  <h1>The "Negotiation Lab"</h1>
+  <p>Step-by-step negotiation scripts with conditional branching and tactical advice</p>
+</div>
+
+<div class="browser-frame" style="margin: 0 40px 80px;">
+  <div class="browser-bar">
+    <div class="browser-dots"><span></span><span></span><span></span></div>
+    <div class="browser-url">🔒 faircheck.app/negotiate/a7f3b2c1</div>
+  </div>
+  <div class="negotiate-web">
+    <div class="orb orb-1" style="opacity:0.12;"></div>
+    <div class="orb orb-2" style="opacity:0.08;background:radial-gradient(circle,#7C3AED 0%,transparent 70%);"></div>
+
+    <div class="top-nav">
+      <div class="nav-logo"><div class="icon">⚖</div><span>FairCheck</span></div>
+      <div class="nav-links"><a>Home</a><a>History</a><a>Community</a><a>Pricing</a></div>
+      <div class="nav-right"><button class="nav-btn ghost">Rudra</button></div>
+    </div>
+
+    <div class="negotiate-content">
+      <div class="back-btn">← Back to Verdict</div>
+
+      <div class="negotiate-grid">
+        <div class="script-card">
+          <div class="script-header">
+            <h3>💬 Your Negotiation Script</h3>
+            <div style="font-size:12px;color:#64748b;">Brake Pads + Rotors · ₹14,000 → Target: ₹4,500</div>
+          </div>
+
+          <div class="chat-flow">
+            <div class="chat-bubble chat-you">
+              <div class="chat-label">YOU SAY:</div>
+              "I've done some research and the standard rate for brake pads and rotor service on a Honda City in Pune is ₹3,500–5,500. Can you help me understand what's driving your quote to ₹14,000?"
+            </div>
+
+            <div class="chat-bubble chat-if">
+              <div class="chat-label">IF THEY SAY: "Parts are expensive"</div>
+              They may be quoting OEM prices for aftermarket parts, or inflating part costs.
+            </div>
+
+            <div class="chat-bubble chat-response">
+              <div class="chat-label">YOUR RESPONSE:</div>
+              "Are these OEM Honda parts or aftermarket? Can I see the part packaging and the price label? I'd like to verify the part number."
+            </div>
+
+            <div class="chat-bubble chat-if">
+              <div class="chat-label">IF THEY SAY: "Labour is high"</div>
+              Standard labour for this job is 1–1.5 hours.
+            </div>
+
+            <div class="chat-bubble chat-response">
+              <div class="chat-label">YOUR RESPONSE:</div>
+              "Can you show me the labour rate card? What's the hourly rate, and how many hours does this job take? Standard is about 1 hour."
+            </div>
+
+            <div class="chat-bubble chat-if">
+              <div class="chat-label">IF THEY SAY: "Rotors need full replacement"</div>
+              Rotors only need replacement if wear is below manufacturer spec (usually 1mm).
+            </div>
+
+            <div class="chat-bubble chat-response">
+              <div class="chat-label">YOUR RESPONSE:</div>
+              "Can you measure the rotor thickness with a caliper and show me? The Honda spec is minimum 1mm. If it's above that, resurfacing should be enough."
+            </div>
+
+            <div class="chat-bubble chat-signal">
+              🚪 IF THEY CAN'T ANSWER ANY OF THESE — THAT IS YOUR SIGNAL TO LEAVE
+            </div>
+          </div>
+        </div>
+
+        <!-- Sidebar: Tactics -->
+        <div class="sidebar">
+          <div class="side-card">
+            <h3>🧠 Negotiation Tactics</h3>
+            <div class="tactic">
+              <h4>📊 Anchor Low</h4>
+              <p>Start at ₹3,500 (bottom of fair range). They'll counter. You'll meet around ₹4,500 — which is still fair.</p>
+            </div>
+            <div class="tactic">
+              <h4>🔍 Ask for Proof</h4>
+              <p>Legitimate mechanics can show part prices, labor rates, and wear measurements. If they refuse, it's a red flag.</p>
+            </div>
+            <div class="tactic">
+              <h4>⏰ Remove Urgency</h4>
+              <p>If they say "this is urgent," ask: "What happens if I drive it home and come back tomorrow?" Brake pads don't fail instantly.</p>
+            </div>
+            <div class="tactic">
+              <h4>🏪 Mention Alternatives</h4>
+              <p>"I've got quotes from two other garages in the ₹4,000–5,000 range. Can you match that?"</p>
+            </div>
+          </div>
+
+          <div class="side-card">
+            <h3>🎯 Your Target</h3>
+            <div style="text-align:center;padding:16px 0;">
+              <div style="font-size:32px;font-weight:900;color:#00C853;">₹4,500</div>
+              <div style="font-size:13px;color:#64748b;margin-top:4px;">Walk away above ₹6,000</div>
+            </div>
+            <div style="display:flex;justify-content:space-between;font-size:12px;color:#475569;padding:0 8px;">
+              <span>Their quote: ₹14,000</span>
+              <span style="color:#00C853;font-weight:600;">You save: ₹9,500</span>
+            </div>
+          </div>
+
+          <div class="side-card">
+            <h3>📤 Evidence Kit</h3>
+            <div class="action-btns">
+              <button class="action-btn share">📄 Download PDF Report</button>
+              <button class="action-btn share">📱 Share on WhatsApp</button>
+              <button class="action-btn share">🐦 Share on Twitter</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ======================== SCREEN 4: VAULT ======================== -->
+<div class="section-header">
+  <div class="badge" style="background:rgba(0,200,83,0.1);color:#00C853;">Screen 4</div>
+  <h1>The "Vault" — History & Savings</h1>
+  <p>Your personal savings dashboard with query history, community contributions, and annual impact</p>
+</div>
+
+<div class="browser-frame" style="margin: 0 40px 80px;">
+  <div class="browser-bar">
+    <div class="browser-dots"><span></span><span></span><span></span></div>
+    <div class="browser-url">🔒 faircheck.app/vault</div>
+  </div>
+  <div class="vault-web">
+    <div class="orb" style="width:400px;height:400px;background:radial-gradient(circle,#00C853 0%,transparent 70%);top:-150px;right:-100px;opacity:0.1;filter:blur(100px);position:absolute;"></div>
+
+    <div class="top-nav">
+      <div class="nav-logo"><div class="icon">⚖</div><span>FairCheck</span></div>
+      <div class="nav-links"><a>Home</a><a class="active">History</a><a>Community</a><a>Pricing</a></div>
+      <div class="nav-right"><button class="nav-btn ghost">Rudra</button></div>
+    </div>
+
+    <div class="vault-content">
+      <div class="savings-hero">
+        <div style="font-size:13px;color:#64748b;margin-bottom:8px;">Total Money Saved</div>
+        <div class="savings-amount">₹34,500</div>
+        <div class="savings-label">Since March 2026</div>
+        <div class="savings-stats">
+          <div class="savings-stat"><div class="val">12</div><div class="lab">Queries</div></div>
+          <div class="savings-stat"><div class="val">8</div><div class="lab">Overcharges Found</div></div>
+          <div class="savings-stat"><div class="val">5</div><div class="lab">Negotiations Won</div></div>
+          <div class="savings-stat"><div class="val">3</div><div class="lab">Community Helps</div></div>
+        </div>
+      </div>
+
+      <h3 style="font-size:16px;font-weight:700;margin-bottom:16px;">Recent Checks</h3>
+
+      <div class="history-list">
+        <div class="history-item">
+          <div class="history-icon auto">🔧</div>
+          <div class="history-info">
+            <h4>Brake Pads + Rotors — Honda City 2019</h4>
+            <p>Pune · 2 hours ago</p>
+          </div>
+          <div class="history-result">
+            <div class="history-saved">Saved ₹9,500</div>
+            <div class="history-verdict overcharge">2.8x Overcharge</div>
+          </div>
+        </div>
+
+        <div class="history-item">
+          <div class="history-icon medical">💊</div>
+          <div class="history-info">
+            <h4>Antibiotic Prescription — 5 medicines</h4>
+            <p>Mumbai · Yesterday</p>
+          </div>
+          <div class="history-result">
+            <div class="history-saved">Saved ₹2,200</div>
+            <div class="history-verdict overcharge">4.6x Overcharge</div>
+          </div>
+        </div>
+
+        <div class="history-item">
+          <div class="history-icon home">🏠</div>
+          <div class="history-info">
+            <h4>Bathroom Renovation Quote</h4>
+            <p>Bangalore · 3 days ago</p>
+          </div>
+          <div class="history-result">
+            <div class="history-saved">Saved ₹18,000</div>
+            <div class="history-verdict overcharge">1.9x Overcharge</div>
+          </div>
+        </div>
+
+        <div class="history-item">
+          <div class="history-icon auto">🔧</div>
+          <div class="history-info">
+            <h4>Oil Change + Filter — Maruti Swift</h4>
+            <p>Pune · 1 week ago</p>
+          </div>
+          <div class="history-result">
+            <div class="history-saved" style="color:#94a3b8;">—</div>
+            <div class="history-verdict fair">Fair Price</div>
+          </div>
+        </div>
+
+        <div class="history-item">
+          <div class="history-icon medical">💊</div>
+          <div class="history-info">
+            <h4>Diabetes Medication Review</h4>
+            <p>Mumbai · 2 weeks ago</p>
+          </div>
+          <div class="history-result">
+            <div class="history-saved">Saved ₹4,800</div>
+            <div class="history-verdict high">Slightly High</div>
+          </div>
+        </div>
+      </div>
+
+      <div style="text-align:center;margin-top:24px;">
+        <div style="display:inline-flex;align-items:center;gap:8px;padding:10px 20px;border-radius:12px;background:rgba(0,200,83,0.04);border:1px solid rgba(0,200,83,0.1);font-size:13px;color:#4ADE80;">
+          🌐 Your data helped 47 people get fair prices this month
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

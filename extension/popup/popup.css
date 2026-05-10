@@ -1,0 +1,267 @@
+body {
+  width: 340px;
+  margin: 0;
+  padding: 14px;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  color: #1a1a1a;
+  background: #fafafa;
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+/* ─── Header ──────────────────────────────────────────────── */
+.hdr .brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+.hdr .dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #d1d5db;
+  transition: background 0.15s;
+}
+.hdr .dot.green { background: #22c55e; }
+.hdr .dot.amber { background: #f59e0b; }
+.hdr .dot.red { background: #ef4444; }
+.hdr .sub {
+  margin-top: 4px;
+  color: #555;
+  font-size: 12px;
+}
+
+/* ─── Cards ──────────────────────────────────────────────── */
+section,
+details {
+  margin-top: 12px;
+  padding: 12px;
+  background: #fff;
+  border-radius: 10px;
+  border: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+.card-title {
+  margin: 0 0 6px;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+.muted {
+  margin: 0 0 8px;
+  color: #555;
+  font-size: 12px;
+}
+
+button {
+  font-family: inherit;
+  cursor: pointer;
+}
+
+button.primary {
+  width: 100%;
+  padding: 10px 12px;
+  background: #111;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+button.primary:hover { background: #000; }
+button.primary:disabled { opacity: 0.6; cursor: not-allowed; }
+
+button.secondary {
+  margin-top: 8px;
+  padding: 8px 12px;
+  border-radius: 6px;
+  border: none;
+  background: #111;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 600;
+}
+button.secondary:hover { background: #000; }
+
+button.link {
+  background: none;
+  border: none;
+  padding: 0;
+  color: #2563eb;
+  font-size: 12px;
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+button.link:hover { color: #1d4ed8; }
+
+.pair-hint {
+  margin-top: 10px;
+  padding: 10px;
+  border-radius: 8px;
+  background: #f7f7f5;
+  border: 1px dashed rgba(0, 0, 0, 0.1);
+}
+.pair-hint .code-hint {
+  margin: 4px 0 6px;
+  font-size: 11px;
+  color: #666;
+}
+.pair-hint code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 12px;
+  color: #111;
+  background: #fff;
+  padding: 2px 6px;
+  border-radius: 4px;
+  border: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+/* ─── Signed-in state ────────────────────────────────────── */
+.me {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+}
+.me-name {
+  font-weight: 700;
+  font-size: 14px;
+  letter-spacing: -0.01em;
+}
+.me-plan {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  background: #111;
+  color: #fff;
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+.me-actions {
+  margin-top: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 12px;
+}
+.me-actions a {
+  color: #111;
+  font-weight: 600;
+  text-decoration: none;
+}
+.me-actions a:hover { text-decoration: underline; }
+
+/* ─── How-to ─────────────────────────────────────────────── */
+.howto ol {
+  margin: 0;
+  padding-left: 18px;
+}
+.howto li { margin-bottom: 4px; }
+
+/* ─── Recent analyses ────────────────────────────────────── */
+.analyses-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.analyses-list .empty {
+  padding: 10px;
+  font-size: 12px;
+  color: #666;
+  background: #f7f7f5;
+  border-radius: 6px;
+  text-align: center;
+}
+.analyses-list .row {
+  padding: 8px 10px;
+  border-radius: 6px;
+  background: #f7f7f5;
+  border: 1px solid rgba(0, 0, 0, 0.04);
+}
+.analyses-list .row-main {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 600;
+}
+.analyses-list .row-meta {
+  margin-top: 2px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  font-size: 11px;
+  color: #666;
+}
+.analyses-list .badge {
+  display: inline-block;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  background: #e5e7eb;
+  color: #1f2937;
+}
+.analyses-list .badge.fair { background: #dcfce7; color: #166534; }
+.analyses-list .badge.high { background: #fef3c7; color: #92400e; }
+.analyses-list .badge.over { background: #fee2e2; color: #991b1b; }
+.analyses-list .row-fair {
+  font-size: 12px;
+  color: #1f2937;
+}
+
+/* ─── Config (advanced) ──────────────────────────────────── */
+details.config { padding: 8px 12px; }
+details.config summary {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #666;
+  cursor: pointer;
+}
+details.config[open] { padding: 12px; }
+.config label {
+  display: block;
+  margin-top: 8px;
+  font-size: 11px;
+  font-weight: 600;
+  color: #666;
+  margin-bottom: 4px;
+}
+.config input {
+  width: 100%;
+  padding: 8px 10px;
+  border: 1px solid rgba(0, 0, 0, 0.15);
+  border-radius: 6px;
+  font-size: 13px;
+  box-sizing: border-box;
+}
+
+.status {
+  margin: 8px 0 0;
+  font-size: 11px;
+  color: #166534;
+  min-height: 14px;
+}
+.status.err { color: #991b1b; }
+
+/* ─── Footer ─────────────────────────────────────────────── */
+.foot {
+  margin-top: 12px;
+  display: flex;
+  justify-content: space-between;
+  font-size: 11px;
+  color: #666;
+}
+.foot a { color: #111; font-weight: 600; text-decoration: none; }

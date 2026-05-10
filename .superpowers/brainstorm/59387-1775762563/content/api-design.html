@@ -1,0 +1,230 @@
+<h2>FairCheck — API Design & Query Pipeline</h2>
+<p class="subtitle">FastAPI endpoints with domain routers + real-time streaming via WebSocket</p>
+
+<div class="mockup">
+  <div class="mockup-header">API Endpoints</div>
+  <div class="mockup-body" style="padding:24px;background:#0F172A;color:#e2e8f0;font-family:monospace;font-size:12px;line-height:1.8;">
+<pre style="margin:0;white-space:pre;overflow-x:auto;">
+BASE URL: /api/v1
+
+━━━ CORE ANALYSIS ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+POST /analyze              Main quote analysis (text input)
+     Body: { query, domain?, city, country, quoted_price? }
+     Returns: { verdict, price_range, confidence, explanation,
+                red_flags[], questions[], negotiation_script }
+
+POST /analyze/image        Photo of bill/invoice/damage
+     Body: multipart { image, domain?, city, country }
+     Returns: same as /analyze + extracted_text
+
+POST /analyze/voice        Voice note input
+     Body: multipart { audio, language? }
+     Returns: { transcript } + same as /analyze
+
+WS   /ws/analyze           WebSocket — streams verdict in real-time
+     Send: { query, domain?, city, country, quoted_price? }
+     Receive: stream of { step, data } events:
+       → { step: "classifying", domain: "auto" }
+       → { step: "searching", sources: 12 }
+       → { step: "analyzing", model: "sonnet" }
+       → { step: "verdict", data: { ...full result } }
+
+━━━ NEGOTIATION ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+POST /negotiate            Generate negotiation script
+     Body: { query_id }
+     Returns: { scripts[], tactics[], walk_away_signals[] }
+
+POST /negotiate/roleplay   AI roleplay practice (streaming)
+     Body: { query_id, user_message }
+     Returns: SSE stream of expert responses
+
+━━━ FEEDBACK & COMMUNITY ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+POST /feedback             User confirms final price paid
+     Body: { query_id, final_price, outcome, vendor_name? }
+
+GET  /community/prices     Browse community pricing data
+     Params: domain, city, country, category, limit
+     Returns: { prices[], avg, median, data_points }
+
+POST /community/submit     Submit a price without a query
+     Body: { domain, service, price, city, country, vendor? }
+
+━━━ USER & HISTORY ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+GET  /history              User's past queries
+     Params: page, limit, domain?, verdict?
+     Returns: { queries[], total_saved, total_queries }
+
+GET  /history/:id          Single query detail
+GET  /savings/summary      Savings dashboard data
+     Returns: { total_saved, this_month, by_domain{}, by_month[] }
+
+GET  /profile              User profile + subscription
+PUT  /profile              Update profile (city, language, etc.)
+
+━━━ VENDORS ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+GET  /vendors              Search verified vendors
+     Params: domain, city, country, verified_only?
+     Returns: { vendors[], total }
+
+POST /vendors/:id/review   Review a vendor after interaction
+     Body: { query_id, rating, transparency, comment? }
+
+━━━ ADMIN / DATA PIPELINE ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+POST /admin/scrape         Trigger batch pricing scrape (protected)
+GET  /admin/stats          System stats (query volume, costs, etc.)
+POST /admin/knowledge      Bulk upload pricing knowledge
+</pre>
+  </div>
+</div>
+
+<!-- Query Pipeline Detail -->
+<div style="margin-top:24px;">
+  <h3>Query Processing Pipeline (What happens on POST /analyze)</h3>
+</div>
+
+<div class="mockup">
+  <div class="mockup-header">Pipeline Flow — Cost-Optimal Cascade</div>
+  <div class="mockup-body" style="padding:24px;background:#0F172A;color:#e2e8f0;font-family:monospace;font-size:12px;line-height:1.8;">
+<pre style="margin:0;white-space:pre;overflow-x:auto;">
+User Input: "Mechanic quoted ₹14,000 for brake pads + rotors, Honda City 2019, Pune"
+                │
+                ▼
+┌─── STEP 1: CLASSIFY (Claude Haiku — ~0.2s, ~₹0.01) ──────────────┐
+│  Extract: domain=auto, service=brake_pads+rotors, make=Honda,     │
+│           model=City, year=2019, city=Pune, country=IN,           │
+│           quoted_price=14000, currency=INR                         │
+└───────────────────────────┬────────────────────────────────────────┘
+                            │
+                            ▼
+┌─── STEP 2: CACHE CHECK (Redis + Supabase — ~0.1s, ₹0) ───────────┐
+│  Redis key: "auto:brake_pads_rotors:honda_city:pune:IN"           │
+│  Hit? → Return cached result (80% hit rate target)                 │
+│  Miss? → Continue to Step 3                                        │
+└───────────────────────────┬────────────────────────────────────────┘
+                            │ CACHE MISS
+                            ▼
+┌─── STEP 3: PARALLEL DATA FETCH (fan-out, ~2-5s) ──────────────────┐
+│                                                                     │
+│  ┌─────────────┐  ┌──────────────┐  ┌────────────────┐            │
+│  │ Knowledge   │  │ Community    │  │ Web Search     │            │
+│  │ Base Query  │  │ pgvector     │  │ (Tavily)       │            │
+│  │             │  │ similarity   │  │                │            │
+│  │ SELECT from │  │ Find similar │  │ "Honda City    │            │
+│  │ pricing_    │  │ community    │  │  brake pads    │            │
+│  │ knowledge   │  │ prices in    │  │  cost Pune     │            │
+│  │ WHERE auto  │  │ Pune area    │  │  2024"         │            │
+│  │ + brake_pad │  │              │  │                │            │
+│  │ + pune      │  │ Returns 8    │  │ Returns 5 web  │            │
+│  │             │  │ data points  │  │ results with   │            │
+│  │ Returns:    │  │ ₹3500-6000   │  │ price ranges   │            │
+│  │ ₹3000-5500  │  │              │  │ ₹4000-5500     │            │
+│  │ (OEM parts) │  │ Cost: ₹0     │  │                │            │
+│  │ Cost: ₹0    │  │              │  │ Cost: ₹0.01    │            │
+│  └──────┬──────┘  └──────┬───────┘  └───────┬────────┘            │
+│         └────────────────┼──────────────────┘                      │
+│                          ▼                                          │
+└─── STEP 4: MERGE + SYNTHESIZE (Claude Sonnet — ~2s, ~₹0.15) ──────┘
+                            │
+    Sonnet receives: knowledge_data + community_data + web_data
+    + original query + domain-specific prompt template
+                            │
+                            ▼
+┌─── STEP 5: OUTPUT ─────────────────────────────────────────────────┐
+│                                                                     │
+│  {                                                                  │
+│    "verdict": "overcharge",                                        │
+│    "overcharge_multiplier": 2.8,                                   │
+│    "fair_price_low": 3500,                                         │
+│    "fair_price_high": 5500,                                        │
+│    "confidence_score": 87,                                         │
+│    "data_points_count": 13,                                        │
+│    "explanation": "Brake pads for Honda City 2019 cost ₹1500-2500 │
+│      (OEM) or ₹800-1500 (aftermarket). Rotors rarely need full   │
+│      replacement — resurfacing costs ₹500-800. Labour: ₹800-1200. │
+│      Total fair range: ₹3,500-5,500.",                             │
+│    "red_flags": [                                                  │
+│      "Full rotor replacement rarely needed — ask for measurement", │
+│      "No distinction between OEM and aftermarket parts"            │
+│    ],                                                              │
+│    "questions_to_ask": [                                           │
+│      "Can you show me the rotor wear measurement?",               │
+│      "Are these OEM Honda parts or aftermarket?",                 │
+│      "Can I see the parts before you install them?"               │
+│    ],                                                              │
+│    "sources": { "knowledge_base": 5, "community": 8, "web": 5 }  │
+│  }                                                                  │
+│                                                                     │
+│  Total cost: ~₹0.16  |  Total time: ~3-5 seconds                  │
+│  Cached for 24h at "auto:brake_pads_rotors:honda_city:pune:IN"    │
+└─────────────────────────────────────────────────────────────────────┘
+</pre>
+  </div>
+</div>
+
+<!-- Domain-specific prompt templates -->
+<div style="margin-top:24px;">
+  <h3>Domain Prompt Templates (What makes each vertical smart)</h3>
+</div>
+
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:12px;">
+  <div style="padding:16px;border-radius:12px;background:rgba(0,82,255,0.06);border:1px solid rgba(0,82,255,0.15);">
+    <h4 style="margin-top:0;">🔧 Auto Repair</h4>
+    <ul style="font-size:13px;">
+      <li>OEM vs aftermarket part distinction</li>
+      <li>Labor rate by city + garage tier</li>
+      <li>VIN/make/model/year specific pricing</li>
+      <li>Wear item vs repair classification</li>
+      <li>Red flags: unnecessary part replacement, bundled services</li>
+    </ul>
+  </div>
+
+  <div style="padding:16px;border-radius:12px;background:rgba(0,200,83,0.06);border:1px solid rgba(0,200,83,0.15);">
+    <h4 style="margin-top:0;">💊 Medical / Prescription</h4>
+    <ul style="font-size:13px;">
+      <li>Generic vs branded drug lookup (NPPA database)</li>
+      <li>Standard-of-care validation (is this drug necessary?)</li>
+      <li>Drug interaction warnings</li>
+      <li>CGHS rate schedule comparison</li>
+      <li>Red flags: unnecessary medications, overpriced branded generics</li>
+    </ul>
+  </div>
+
+  <div style="padding:16px;border-radius:12px;background:rgba(255,214,0,0.06);border:1px solid rgba(255,214,0,0.15);">
+    <h4 style="margin-top:0;">🏠 Home Services</h4>
+    <ul style="font-size:13px;">
+      <li>Material cost breakdown (cement, tiles, pipes by city)</li>
+      <li>Labor rate by skill level + city</li>
+      <li>Scope validation (is this job description reasonable?)</li>
+      <li>Seasonal pricing adjustments</li>
+      <li>Red flags: inflated material costs, vague scope, padding</li>
+    </ul>
+  </div>
+
+  <div style="padding:16px;border-radius:12px;background:rgba(255,61,0,0.06);border:1px solid rgba(255,61,0,0.15);">
+    <h4 style="margin-top:0;">⚖️ Legal (Phase 1)</h4>
+    <ul style="font-size:13px;">
+      <li>Bar Council fee guidelines by court</li>
+      <li>Matter type classification (civil/criminal/corporate)</li>
+      <li>Free legal aid eligibility check</li>
+      <li>Standard fee schedule comparison</li>
+      <li>Red flags: unnecessary filings, inflated court fees</li>
+    </ul>
+  </div>
+</div>
+
+<div class="options" style="margin-top:24px;">
+  <div class="option" data-choice="approve" onclick="toggleSelect(this)">
+    <div class="letter">✓</div>
+    <div class="content">
+      <h3>API + Pipeline approved — show frontend UI</h3>
+      <p>Move to the glassmorphism UI design for all screens.</p>
+    </div>
+  </div>
+  <div class="option" data-choice="revise" onclick="toggleSelect(this)">
+    <div class="letter">✎</div>
+    <div class="content">
+      <h3>Changes needed</h3>
+      <p>I want to modify some endpoints or the pipeline.</p>
+    </div>
+  </div>
+</div>
