@@ -200,7 +200,7 @@ async def confirm_pairing(
     )
     db.add(device)
 
-    row.user_id = UUID(user_id)
+    row.user_id = user_id
     row.device_token_hash = token_hash
     row.paired_at = datetime.utcnow()
 

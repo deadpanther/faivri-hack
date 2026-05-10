@@ -368,17 +368,18 @@ async def get_providers():
     }
 
 
-def _coerce_profile_uuid(user_id: str | None) -> uuid.UUID | None:
-    """The auth dependency hands back the Clerk `sub` (e.g. `user_abc123`),
-    but `profiles.id` is a UUID. Until the codebase-wide sub→UUID lookup
-    lands, we only persist `user_id` when it's already a UUID; otherwise
-    the row is recorded as anonymous. Keeps the endpoint from crashing on
-    a signed-in request while still attributing any UUID-shaped callers.
+def _coerce_profile_uuid(user_id: str | None) -> str | None:
+    """Return user_id as a string if it's valid UUID-shaped, else None.
+
+    SQLite cannot bind uuid.UUID parameters — all IDs must be plain strings.
+    We validate that the string is UUID-shaped so we don't persist garbage,
+    but return the original string rather than a uuid.UUID object.
     """
     if not user_id:
         return None
     try:
-        return uuid.UUID(user_id)
+        uuid.UUID(user_id)  # validate shape
+        return user_id       # return as string for SQLite compat
     except ValueError:
         return None
 
@@ -403,7 +404,7 @@ async def _persist_purchase_analysis(
     Persistence errors are re-raised; the caller handles them as a 500 so a
     silent DB failure can't strand the client with an un-linkable result.
     """
-    analysis_id = uuid.uuid4()
+    analysis_id = str(uuid.uuid4())
     row = PurchaseAnalysis(
         id=analysis_id,
         user_id=_coerce_profile_uuid(user_id),

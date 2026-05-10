@@ -100,7 +100,7 @@ async def touch_and_enforce(
                 raise SessionRevokedByCap()
 
             session = ProfileSession(
-                id=uuid.uuid4(),
+                id=str(uuid.uuid4()),
                 user_id=user_id,
                 clerk_session_id=clerk_session_id,
                 user_agent=(user_agent or "")[:500] or None,

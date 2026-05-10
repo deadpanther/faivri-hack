@@ -87,11 +87,10 @@ async def get_purchase_history(
     if not user_id:
         raise HTTPException(status_code=401, detail="Authentication required to view purchases")
 
+    # Validate user_id is UUID-shaped (auth dep resolves Clerk subs to profile UUIDs)
     try:
-        user_uuid = UUID(user_id)
+        UUID(user_id)
     except (ValueError, TypeError):
-        # Auth dep already resolves Clerk subs to profile UUIDs, so anything
-        # else is malformed — return empty rather than 500.
         return []
 
     offset = (page - 1) * limit
