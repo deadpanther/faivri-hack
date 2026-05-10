@@ -1,22 +1,29 @@
 'use client'
 
 import Link from 'next/link'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Cookie, X } from 'lucide-react'
 
 const CONSENT_KEY = 'faivri_cookie_consent_v1'
 
 export function CookieConsent() {
-  const [visible, setVisible] = useState(() => {
-    if (typeof window === 'undefined') return false
+  // Start hidden so the server-rendered HTML and the first client render
+  // match (both produce `null`). We then check localStorage after mount and
+  // reveal the banner if no prior consent is recorded. Doing this in
+  // `useEffect` is what avoids the hydration mismatch.
+  const [visible, setVisible] = useState(false)
+
+  useEffect(() => {
     try {
-      return !window.localStorage.getItem(CONSENT_KEY)
+      if (!window.localStorage.getItem(CONSENT_KEY)) {
+        setVisible(true)
+      }
     } catch {
       // Private-mode Safari can throw on localStorage access — show the
       // banner anyway so the user still gets the disclosure.
-      return true
+      setVisible(true)
     }
-  })
+  }, [])
 
   function dismiss(accepted: boolean) {
     try {

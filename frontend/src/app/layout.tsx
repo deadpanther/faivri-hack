@@ -101,7 +101,14 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" className={`${inter.variable} ${display.variable}`}>
-      <body className="min-h-[100svh] antialiased bg-[var(--warm-bg)] text-[var(--text-1)]">
+      <body
+        className="min-h-[100svh] antialiased bg-[var(--warm-bg)] text-[var(--text-1)]"
+        // Browser extensions (Grammarly, password managers, etc.) inject
+        // attributes onto <body> before React hydrates. We don't render any
+        // conditional content directly into <body>, so it's safe — and
+        // necessary — to silence the resulting hydration warnings here.
+        suppressHydrationWarning
+      >
         <Providers>
           <ScrollProgress />
           <SmoothScroll />

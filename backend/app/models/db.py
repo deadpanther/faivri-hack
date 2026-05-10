@@ -7,9 +7,36 @@ from datetime import datetime
 
 from sqlalchemy import (
     Column, String, Integer, Text, Numeric, Boolean, DateTime, ForeignKey, Index,
-    UniqueConstraint, JSON,
+    UniqueConstraint, JSON, CHAR,
 )
 from sqlalchemy.dialects.postgresql import UUID as _PG_UUID, ENUM as PG_ENUM
+from sqlalchemy.types import TypeDecorator
+
+
+class _UUIDString(TypeDecorator):
+    """SQLite-compatible UUID column.
+
+    The SQLite driver (aiosqlite) can't bind a `uuid.UUID` parameter — it
+    raises `type 'UUID' is not supported`. Callers in this codebase routinely
+    pass UUID instances (e.g. `uuid.uuid4()`, `uuid.UUID(user_id)`), so we
+    coerce on bind and surface the canonical 36-char string on read. This
+    type is only used when DATABASE_URL points at SQLite; Postgres keeps
+    using the native `UUID` type below.
+    """
+
+    impl = CHAR(36)
+    cache_ok = True
+
+    def process_bind_param(self, value, dialect):
+        if value is None:
+            return None
+        if isinstance(value, _uuid.UUID):
+            return str(value)
+        return str(value)
+
+    def process_result_value(self, value, dialect):
+        return value
+
 
 # JSONB for Postgres, JSON for everything else (SQLite)
 try:
@@ -18,14 +45,14 @@ try:
     _JSON = _JSONB if not settings.database_url.startswith("sqlite") else JSON
     if settings.database_url.startswith("sqlite"):
         def _UUID(**kwargs):
-            """SQLite-compatible UUID: stored as String, ignores as_uuid."""
-            return String(36)
+            """SQLite-compatible UUID: accepts UUID or str, stores as 36-char string."""
+            return _UUIDString()
     else:
         _UUID = _PG_UUID
 except Exception:
     _JSON = JSON
     def _UUID(**kwargs):
-        return String(36)
+        return _UUIDString()
 from sqlalchemy.orm import DeclarativeBase, relationship
 
 

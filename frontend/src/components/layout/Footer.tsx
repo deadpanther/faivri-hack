@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useAuth } from '@/components/auth/InsForgeAuthProvider'
 import { AuthModal } from '@/components/auth/AuthModal'
 import {
@@ -35,10 +35,9 @@ const companyLinks: { href: string; label: string; external?: boolean }[] = [
 // Builds a mailto link with a prefilled template so users give us enough
 // context to actually debug. Captures the URL they're on and their browser
 // string — things they usually forget to include when firing off a support
-// email. `navigator` lookup guarded for SSR.
-function supportMailto(pathname: string | null): string {
-  const ua =
-    typeof navigator !== 'undefined' ? navigator.userAgent : 'unknown'
+// email. The UA is filled in after mount so the SSR markup matches the
+// initial client render (otherwise React reports a hydration mismatch).
+function supportMailto(pathname: string | null, ua: string): string {
   const body = [
     'Describe what happened:',
     '',
@@ -62,6 +61,12 @@ export function Footer() {
   const pathname = usePathname()
   const { user } = useAuth()
   const [showAuth, setShowAuth] = useState<'sign-in' | 'sign-up' | null>(null)
+  const [ua, setUa] = useState('unknown')
+  useEffect(() => {
+    if (typeof navigator !== 'undefined' && navigator.userAgent) {
+      setUa(navigator.userAgent)
+    }
+  }, [])
 
   return (
     <footer data-app-footer="true" className="mt-12 md:mt-24">
@@ -222,7 +227,7 @@ export function Footer() {
                 Need help?
               </p>
               <a
-                href={supportMailto(pathname)}
+                href={supportMailto(pathname, ua)}
                 className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-full border border-[var(--border)] bg-white px-4 py-2.5 text-[13px] font-semibold text-[var(--text-1)] shadow-[0_1px_2px_rgba(0,0,0,0.03)] transition-all hover:border-[var(--border-hover)] hover:bg-[var(--warm-bg-tertiary)] hover:shadow-[0_2px_6px_rgba(0,0,0,0.06)]"
               >
                 <LifeBuoy className="h-4 w-4" />

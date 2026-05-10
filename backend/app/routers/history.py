@@ -150,6 +150,33 @@ async def get_query_detail(
     if not q:
         raise HTTPException(status_code=404, detail="Query not found")
 
+    # `sources_used` was repurposed by the evidence-first orchestrator to
+    # hold the rich evidence dict (shape: `{web_results_count, local_count,
+    # distinct_trusted_domains, std_dev_cents, sources: [<per-source records>]}`).
+    # The response schema, however, still carries two distinct fields:
+    #   - `sources`: simple counts dict for the "Evidence sources" UI fallback,
+    #     typed `Record<string, number | boolean>` on the frontend.
+    #   - `evidence`: the rich blob (array of source records).
+    # Returning the evidence blob under `sources` caused the frontend's
+    # `Object.entries(data.sources).map(...) → String(count)` fallback to
+    # stringify the nested `sources: [{...}, {...}]` array, surfacing
+    # `[object Object],[object Object]` in the verdict UI. Split them.
+    raw_sources_used = q.sources_used or {}
+    if (
+        isinstance(raw_sources_used, dict)
+        and isinstance(raw_sources_used.get("sources"), list)
+    ):
+        evidence_blob = raw_sources_used
+        sources_counts: dict = {
+            "web_search": raw_sources_used.get("web_results_count", 0),
+            "trusted": raw_sources_used.get("trusted_count", 0),
+            "local": raw_sources_used.get("local_count", 0),
+            "distinct_domains": raw_sources_used.get("distinct_trusted_domains", 0),
+        }
+    else:
+        evidence_blob = None
+        sources_counts = raw_sources_used if isinstance(raw_sources_used, dict) else {}
+
     return VerdictResponse(
         id=str(q.id),
         verdict=q.verdict or "unknown",
@@ -162,7 +189,8 @@ async def get_query_detail(
         explanation=q.explanation or "",
         red_flags=q.red_flags or [],
         questions_to_ask=q.questions_to_ask or [],
-        sources=q.sources_used or {},
+        sources=sources_counts,
+        evidence=evidence_blob,
         domain=q.domain,
         location_city=q.location_city,
         location_country=q.location_country,

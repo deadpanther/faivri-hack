@@ -402,16 +402,30 @@ export default function ResultPage() {
                       </motion.a>
                     ))
                   ) : (
-                    Object.entries(data.sources).map(([source, count], index) => (
-                      <motion.div
-                        key={source}
-                        {...stagger(index * 0.04)}
-                        className="glass flex items-center justify-between rounded-lg px-3 py-2 text-[var(--type-14)]"
-                      >
-                        <span className="capitalize text-[var(--text-2)]">{source.replace('_', ' ')}</span>
-                        <span className="font-mono text-[var(--text-3)]">{String(count)}</span>
-                      </motion.div>
-                    ))
+                    // Defensive: only render scalar entries here. Older rows
+                    // can carry a nested `sources: [{...}, {...}]` array under
+                    // `data.sources` (legacy mis-mapping of the evidence
+                    // blob); without this filter `String(arr)` would surface
+                    // as `[object Object],[object Object]`.
+                    Object.entries(data.sources)
+                      .filter(
+                        ([, count]) =>
+                          typeof count === 'number' ||
+                          typeof count === 'boolean' ||
+                          typeof count === 'string',
+                      )
+                      .map(([source, count], index) => (
+                        <motion.div
+                          key={source}
+                          {...stagger(index * 0.04)}
+                          className="glass flex items-center justify-between rounded-lg px-3 py-2 text-[var(--type-14)]"
+                        >
+                          <span className="capitalize text-[var(--text-2)]">
+                            {source.replace(/_/g, ' ')}
+                          </span>
+                          <span className="font-mono text-[var(--text-3)]">{String(count)}</span>
+                        </motion.div>
+                      ))
                   )}
                 </div>
               </details>
