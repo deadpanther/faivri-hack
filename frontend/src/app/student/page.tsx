@@ -139,7 +139,7 @@ function StudentForm() {
   // Scholar is gated to the verified school email on the user's account.
   // To qualify, the user has to add a .edu to their Clerk profile and
   // verify it; we link them to /account so Clerk's UI handles that flow.
-  const accountEmail = user?.primaryEmailAddress?.emailAddress ?? null
+  const accountEmail = user?.email ?? null
   return (
     <motion.div
       initial={{ opacity: 0, y: 8 }}
@@ -209,6 +209,7 @@ const PERKS = [
 ]
 
 export default function StudentPage() {
+  const { user } = useAuth()
   const [showAuthModal, setShowAuthModal] = useState<'sign-in' | 'sign-up' | null>(null)
   return (
     <section className="ui-section pb-24">

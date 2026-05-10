@@ -40,7 +40,7 @@ async def submit_feedback(
 ):
     """Record the final price and feed community data — idempotently."""
     result = await db.execute(
-        select(QueryModel).where(QueryModel.id == req.query_id)
+        select(QueryModel).where(QueryModel.id == str(req.query_id))
     )
     query = result.scalar_one_or_none()
     if not query:
@@ -81,7 +81,7 @@ async def submit_feedback(
 
     # Idempotent upsert on community_prices keyed by query_id.
     existing_result = await db.execute(
-        select(CommunityPrice).where(CommunityPrice.query_id == req.query_id)
+        select(CommunityPrice).where(CommunityPrice.query_id == str(req.query_id))
     )
     existing = existing_result.scalar_one_or_none()
 

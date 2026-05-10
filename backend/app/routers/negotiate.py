@@ -213,7 +213,7 @@ async def negotiate(
 ):
     """Generate negotiation script for a given verdict."""
     result = await db.execute(
-        select(QueryModel).where(QueryModel.id == req.query_id)
+        select(QueryModel).where(QueryModel.id == str(req.query_id))
     )
     query = result.scalar_one_or_none()
     if not query:
@@ -389,7 +389,7 @@ async def counter_offer(
     try $X again" repeats would each pay for a fresh LLM call.
     """
     result = await db.execute(
-        select(QueryModel).where(QueryModel.id == req.query_id)
+        select(QueryModel).where(QueryModel.id == str(req.query_id))
     )
     query = result.scalar_one_or_none()
     if not query:
@@ -537,7 +537,7 @@ async def negotiate_chat(
         )
 
     result = await db.execute(
-        select(QueryModel).where(QueryModel.id == req.query_id)
+        select(QueryModel).where(QueryModel.id == str(req.query_id))
     )
     query = result.scalar_one_or_none()
     if not query:
@@ -706,7 +706,7 @@ async def get_chat_history(
     of 404 when the conversation hasn't started keeps the extension UI simple.
     """
     result = await db.execute(
-        select(QueryModel).where(QueryModel.id == query_id)
+        select(QueryModel).where(QueryModel.id == str(query_id))
     )
     query = result.scalar_one_or_none()
     if not query:
@@ -715,7 +715,7 @@ async def get_chat_history(
 
     conv_result = await db.execute(
         select(NegotiationConversation).where(
-            NegotiationConversation.query_id == query_id,
+            NegotiationConversation.query_id == str(query_id),
             NegotiationConversation.session_id == session_id,
         )
     )
@@ -779,7 +779,7 @@ async def get_counter_history(
     submitted yet, so the frontend can render the section without branching.
     """
     result = await db.execute(
-        select(QueryModel).where(QueryModel.id == query_id)
+        select(QueryModel).where(QueryModel.id == str(query_id))
     )
     query = result.scalar_one_or_none()
     if not query:
@@ -788,7 +788,7 @@ async def get_counter_history(
 
     rows_result = await db.execute(
         select(CounterOffer)
-        .where(CounterOffer.query_id == query_id)
+        .where(CounterOffer.query_id == str(query_id))
         .order_by(CounterOffer.created_at.desc())
         .limit(50)
     )

@@ -194,7 +194,7 @@ async def create_share(
     """
     if req.kind == "query":
         result = await db.execute(
-            select(QueryModel).where(QueryModel.id == req.record_id)
+            select(QueryModel).where(QueryModel.id == str(req.record_id))
         )
         q = result.scalar_one_or_none()
         if q is None:
@@ -204,7 +204,7 @@ async def create_share(
         owner_clerk_id = str(q.user_id) if q.user_id else None
     else:  # purchase
         result = await db.execute(
-            select(PurchaseAnalysis).where(PurchaseAnalysis.id == req.record_id)
+            select(PurchaseAnalysis).where(PurchaseAnalysis.id == str(req.record_id))
         )
         p = result.scalar_one_or_none()
         if p is None:
@@ -274,7 +274,7 @@ async def get_share(
 
     if share.kind == "query" and share.query_id is not None:
         q_result = await db.execute(
-            select(QueryModel).where(QueryModel.id == share.query_id)
+            select(QueryModel).where(QueryModel.id == str(share.query_id))
         )
         q = q_result.scalar_one_or_none()
         if q is None:
@@ -282,7 +282,7 @@ async def get_share(
         payload = _build_query_payload(q, share.view_count + 1)
     elif share.kind == "purchase" and share.purchase_id is not None:
         p_result = await db.execute(
-            select(PurchaseAnalysis).where(PurchaseAnalysis.id == share.purchase_id)
+            select(PurchaseAnalysis).where(PurchaseAnalysis.id == str(share.purchase_id))
         )
         p = p_result.scalar_one_or_none()
         if p is None:

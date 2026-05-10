@@ -248,9 +248,10 @@ async def _verify_insforge_jwt(token: str) -> Optional[str]:
     try:
         insforge_url = settings.insforge_url
         if not insforge_url:
+            logger.warning("InsForge URL not configured, skipping JWT verification")
             return None
 
-        async with httpx.AsyncClient(timeout=5.0) as client:
+        async with httpx.AsyncClient(timeout=15.0) as client:
             resp = await client.get(
                 f"{insforge_url}/api/auth/sessions/current",
                 headers={

@@ -33,9 +33,12 @@ class RequestIdMiddleware(BaseHTTPMiddleware):
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Schema is managed by Alembic (`alembic upgrade head` at deploy time).
-    # Previously we auto-ran `Base.metadata.create_all` here, which silently
-    # ignores schema drift once a table exists — migrations would no-op forever.
+    # For hackathon SQLite deployment: auto-create tables if they don't exist.
+    # Production uses Alembic migrations.
+    if settings.database_url.startswith("sqlite"):
+        from app.models.db import Base
+        async with engine.begin() as conn:
+            await conn.run_sync(Base.metadata.create_all)
     yield
     await engine.dispose()
 
@@ -51,21 +54,30 @@ app.state.limiter = limiter
 app.add_middleware(SlowAPIMiddleware)
 app.add_middleware(RequestIdMiddleware)
 
-# CORS: refuse to combine `*` with credentialed requests. Browsers reject the
-# combination per spec, but some envs silently coerce it into a successful
-# preflight — which would paint a false sense of security. Fail loud at boot.
-if any(origin.strip() == "*" for origin in settings.cors_origin_list):
-    raise RuntimeError(
-        "CORS_ORIGINS must not include '*' while allow_credentials=True. "
-        "Set it to an explicit comma-separated list of origins."
-    )
+# CORS: In hackathon mode, allow all origins with credentials off.
+# Otherwise, refuse to combine `*` with credentialed requests.
+_IS_HACKATHON = bool(os.getenv("HACKATHON_MODE"))
+
+if _IS_HACKATHON:
+    # Override: allow all origins, disable credentials for simplicity
+    _cors_origins = ["*"]
+    _cors_credentials = False
+else:
+    if any(origin.strip() == "*" for origin in settings.cors_origin_list):
+        raise RuntimeError(
+            "CORS_ORIGINS must not include '*' while allow_credentials=True. "
+            "Set it to an explicit comma-separated list of origins."
+        )
+    _cors_origins = settings.cors_origin_list
+    _cors_credentials = True
 
 # Prod fail-fast: refuse to boot with an empty or localhost-only allowlist on
 # Railway. Previously the default ("http://localhost:3000") would ship silently
 # to production, 403-ing every browser request from faivri.com.
+# HACKATHON: Skip strict CORS checks — we'll set CORS_ORIGINS dynamically.
 _IS_PROD = os.getenv("RAILWAY_ENVIRONMENT", "").lower() == "production" or \
     os.getenv("FAIVRI_ENV", "").lower() == "production"
-if _IS_PROD:
+if _IS_PROD and not os.getenv("HACKATHON_MODE"):
     if not settings.cors_origin_list:
         raise RuntimeError(
             "CORS_ORIGINS is empty in production. Set it to the comma-separated "
@@ -77,9 +89,6 @@ if _IS_PROD:
             "Set it to the public frontend origin so browsers aren't blocked."
         )
     if not settings.admin_api_key:
-        # Not fatal — admin endpoints 403 without it — but operators should
-        # see a loud startup warning so the silent-403 state isn't mistaken
-        # for a working purge endpoint.
         logger.warning(
             "ADMIN_API_KEY unset in production — admin endpoints will always 403. "
             "Set ADMIN_API_KEY on Railway if you need to call /admin/* endpoints."
@@ -87,9 +96,9 @@ if _IS_PROD:
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=settings.cors_origin_list,
-    allow_origin_regex=r"^chrome-extension://[a-z0-9]+$",
-    allow_credentials=True,
+    allow_origins=_cors_origins,
+    allow_origin_regex=r"^chrome-extension://[a-z0-9]+$|^https://[a-z0-9-]+\.vercel\.app$|^https?://localhost:[0-9]+$",
+    allow_credentials=_cors_credentials,
     allow_methods=["GET", "POST", "DELETE", "OPTIONS"],
     allow_headers=["Authorization", "Content-Type", "X-Admin-Api-Key", "X-Faivri-Source", REQUEST_ID_HEADER],
     expose_headers=[REQUEST_ID_HEADER],

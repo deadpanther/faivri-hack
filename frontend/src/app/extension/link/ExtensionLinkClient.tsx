@@ -3,7 +3,6 @@
 import { useAuth } from '@/components/auth/InsForgeAuthProvider'
 import { AuthModal } from '@/components/auth/AuthModal'
 import { useState } from 'react'
-import { Link } from '@/components/home/ExtensionLinkClient'
 
 export default function ExtensionLinkClient() {
   const { user } = useAuth()

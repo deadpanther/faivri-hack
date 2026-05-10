@@ -250,7 +250,7 @@ async def device_me(
 ):
     """Profile basics for the popup header. Honors both `fvt_*` device
     tokens and Clerk JWTs via the shared require_user_id dep."""
-    res = await db.execute(select(Profile).where(Profile.id == UUID(user_id)))
+    res = await db.execute(select(Profile).where(Profile.id == user_id))
     profile = res.scalar_one_or_none()
     if profile is None:
         raise HTTPException(status_code=404, detail="Profile not found")

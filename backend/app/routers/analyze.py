@@ -686,7 +686,7 @@ async def get_purchase_analysis(
         raise HTTPException(status_code=404, detail="Analysis not found")
 
     result = await db.execute(
-        select(PurchaseAnalysis).where(PurchaseAnalysis.id == parsed_id)
+        select(PurchaseAnalysis).where(PurchaseAnalysis.id == str(parsed_id))
     )
     row = result.scalar_one_or_none()
     if not row:

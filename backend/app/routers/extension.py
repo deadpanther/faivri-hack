@@ -516,7 +516,7 @@ async def seller_risk(
 
 
 async def _require_profile(db: AsyncSession, user_id: str) -> Profile:
-    res = await db.execute(select(Profile).where(Profile.id == UUID(user_id)))
+    res = await db.execute(select(Profile).where(Profile.id == user_id))
     profile = res.scalar_one_or_none()
     if not profile:
         raise HTTPException(status_code=401, detail="Profile not found")

@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useMemo, useState } from 'react'
+import { Suspense, useEffect, useMemo, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { motion } from 'framer-motion'
 import {
@@ -31,6 +31,14 @@ function formatCents(cents: number | null | undefined): string {
 }
 
 export default function MessagesPage() {
+  return (
+    <Suspense>
+      <MessagesPageInner />
+    </Suspense>
+  )
+}
+
+function MessagesPageInner() {
   const search = useSearchParams()
   // Pre-fill query_id when the user came from the verdict page via
   // /messages?query_id=... so they don't have to copy the UUID by hand.

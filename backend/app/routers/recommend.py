@@ -46,7 +46,7 @@ async def recommend(
 ):
     """Get personalized recommendations based on a completed analysis."""
     result = await db.execute(
-        select(QueryModel).where(QueryModel.id == query_id)
+        select(QueryModel).where(QueryModel.id == str(query_id))
     )
     query = result.scalar_one_or_none()
     if not query:
